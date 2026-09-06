@@ -1,6 +1,6 @@
 {
   "name": "PyMACS Antigravity DOM Engine",
-  "description": "TypeScript equivalent to DOM engine using JSON=XML=DOM architecture with W3 parser, JS compiler, worker thread pool, reactive lambda streams, and antigravity physics rendering.",
+  "description": "An Operating System in Python: PyMACS Browser-OS with interactive Python/Emacs shell, thread-based filesystem, asyncio tasks, reactive Antigravity DOM, JSON=XML=DOM pipeline, Cloud, and On-Chain PML proofs.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

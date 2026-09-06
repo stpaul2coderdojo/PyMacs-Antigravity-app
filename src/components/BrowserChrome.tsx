@@ -11,10 +11,13 @@ import {
   Tv,
   Layers,
   Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import { PRESETS, PresetData } from '../data/presets';
 
 export type BrowserTab =
+  | 'docs'
+  | 'playground'
   | 'viewport'
   | 'w3parser'
   | 'jsonstore'
@@ -42,6 +45,8 @@ export const BrowserChrome: React.FC<BrowserChromeProps> = ({
   onReload,
 }) => {
   const tabs = [
+    { id: 'playground', label: 'Transpiler Playground', icon: Sparkles },
+    { id: 'docs', label: 'Documentation & Blog', icon: BookOpen },
     { id: 'viewport', label: 'Antigravity Viewport', icon: Layers },
     { id: 'w3parser', label: 'W3 Parser & Filters', icon: FileCode2 },
     { id: 'jsonstore', label: 'JSON Persistence', icon: Database },
@@ -52,7 +57,9 @@ export const BrowserChrome: React.FC<BrowserChromeProps> = ({
 
   const handleTabClick = (tabId: BrowserTab) => {
     setActiveTab(tabId);
-    if (tabId === 'viewport') setCurrentUrl('pymacs://antigravity.sys/live-dom');
+    if (tabId === 'playground') setCurrentUrl('pymacs://transpiler.engine/json-xml-dom-db');
+    else if (tabId === 'docs') setCurrentUrl('https://pymacs.wordpress.com/documentation-and-research');
+    else if (tabId === 'viewport') setCurrentUrl('pymacs://antigravity.sys/live-dom');
     else if (tabId === 'w3parser') setCurrentUrl('pymacs://w3.org/spec/dom-level-3/schema.xml');
     else if (tabId === 'jsonstore') setCurrentUrl('pymacs://persistence.local/state.json');
     else if (tabId === 'compiler') setCurrentUrl('pymacs://runtime/v8-jit/compiler.ts');

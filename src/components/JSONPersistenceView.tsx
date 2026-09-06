@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { VirtualDOMNode } from '../types/dom';
 import { domToJSON, jsonToDOM, domToXML } from '../engine/w3parser';
-import { Database, Download, Upload, Check, RefreshCw, Layers } from 'lucide-react';
+import { Database, Download, Upload, Check, RefreshCw, Layers, Sparkles } from 'lucide-react';
 
 interface JSONPersistenceViewProps {
   rootNode: VirtualDOMNode;
   onUpdateRootNode: (newNode: VirtualDOMNode) => void;
+  onOpenPlayground?: () => void;
 }
 
 export const JSONPersistenceView: React.FC<JSONPersistenceViewProps> = ({
   rootNode,
   onUpdateRootNode,
+  onOpenPlayground,
 }) => {
   const jsonObject = domToJSON(rootNode);
   const [jsonText, setJsonText] = useState(JSON.stringify(jsonObject, null, 2));
@@ -80,6 +82,17 @@ export const JSONPersistenceView: React.FC<JSONPersistenceViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {onOpenPlayground && (
+              <button
+                onClick={onOpenPlayground}
+                className="flex items-center gap-1 bg-[#4ADE80]/15 hover:bg-[#4ADE80]/25 text-[#4ADE80] border border-[#4ADE80]/30 px-2.5 py-1 rounded text-[10px] uppercase tracking-wider cursor-pointer font-semibold"
+                title="Open interactive JSON ⇄ XML ⇄ DOM ⇄ JSON DB Playground"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>Open Playground</span>
+              </button>
+            )}
+
             <button
               onClick={handleExportFile}
               className="flex items-center gap-1 bg-[#1A1A1E] hover:bg-[#25252A] border border-[#2D2D30] text-white px-2.5 py-1 rounded text-[10px] uppercase tracking-wider cursor-pointer"

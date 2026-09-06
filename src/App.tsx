@@ -10,23 +10,52 @@ import { stepPhysics, PhysicsWorldConfig } from './engine/physics';
 import { INITIAL_WORKER_THREADS, updateWorkerMetrics } from './engine/workerPool';
 import { INITIAL_LAMBDA_STREAMS, tickLambdaStreams } from './engine/reactiveStreams';
 import { INITIAL_OPTIMIZED_ASSETS, OptimizedAsset } from './engine/assetOptimizer';
+import { TaskManager } from './engine/taskManager';
 import { PRESETS, PresetData } from './data/presets';
 
-import { Header } from './components/Header';
-import { BrowserChrome, BrowserTab } from './components/BrowserChrome';
+// PyMACS Browser-OS Components
+import { PyMACSHeader } from './components/os/PyMACSHeader';
+import { CommandRail, RailTab } from './components/os/CommandRail';
+import { SystemStatusBar } from './components/os/SystemStatusBar';
+import { DesktopHomeView } from './components/os/DesktopHomeView';
+import { PythonShellWindow } from './components/os/PythonShellWindow';
+import { FilesystemWindow } from './components/os/FilesystemWindow';
+import { TasksWindow } from './components/os/TasksWindow';
+import { SearchWindow } from './components/os/SearchWindow';
+import { MessagesWindow } from './components/os/MessagesWindow';
+import { CloudOnChainWindow } from './components/os/CloudOnChainWindow';
+import { AppsWindow } from './components/os/AppsWindow';
+import { ProfilerWindow } from './components/os/ProfilerWindow';
+import { ApiExplorerWindow } from './components/os/ApiExplorerWindow';
+import { Window, WindowState } from './components/os/WindowManager';
+
+// Core Engines
 import { AntigravityCanvas } from './components/AntigravityCanvas';
+import { TranspilerPlaygroundView } from './components/TranspilerPlaygroundView';
 import { XMLW3ParserView } from './components/XMLW3ParserView';
 import { JSONPersistenceView } from './components/JSONPersistenceView';
-import { JSCompilerView } from './components/JSCompilerView';
-import { WorkerThreadPoolView } from './components/WorkerThreadPoolView';
-import { MediaOptimizerView } from './components/MediaOptimizerView';
+import { DocumentationView } from './components/DocumentationView';
 import { NodeInspectorModal } from './components/NodeInspectorModal';
-import { Footer } from './components/Footer';
+
+import {
+  Terminal,
+  Folder,
+  Activity,
+  Database,
+  Atom,
+  LayoutGrid,
+  Search,
+  MessageSquare,
+  Cloud,
+  Link,
+  BarChart2,
+  Code2,
+} from 'lucide-react';
 
 export default function App() {
   const [selectedPreset, setSelectedPreset] = useState<PresetData>(PRESETS[0]);
-  const [activeTab, setActiveTab] = useState<BrowserTab>('viewport');
-  const [currentUrl, setCurrentUrl] = useState('pymacs://antigravity.sys/live-dom');
+  const [activeTab, setActiveTab] = useState<RailTab>('home');
+  const [isDesktopWindowMode, setIsDesktopWindowMode] = useState<boolean>(false);
 
   // Core state: XML & Virtual DOM
   const [xmlContent, setXmlContent] = useState<string>(selectedPreset.xml);
@@ -42,7 +71,63 @@ export default function App() {
   const [workers, setWorkers] = useState<WorkerThread[]>(INITIAL_WORKER_THREADS);
   const [lambdaStreams, setLambdaStreams] = useState<LambdaStream[]>(INITIAL_LAMBDA_STREAMS);
   const [assets, setAssets] = useState<OptimizedAsset[]>(INITIAL_OPTIMIZED_ASSETS);
-  const [bufferLoadMs, setBufferLoadMs] = useState(1.2);
+  const [metrics, setMetrics] = useState(TaskManager.getSystemMetrics());
+
+  // Multi-window State for Desktop Mode
+  const [windows, setWindows] = useState<WindowState[]>([
+    {
+      id: 'shell',
+      title: 'PyMACS Python Shell (Emacs Mode)',
+      icon: Terminal,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 60,
+      y: 40,
+      width: 580,
+      height: 380,
+      zIndex: 10,
+    },
+    {
+      id: 'files',
+      title: 'Thread VFS Browser',
+      icon: Folder,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 140,
+      y: 80,
+      width: 620,
+      height: 400,
+      zIndex: 11,
+    },
+    {
+      id: 'tasks',
+      title: 'Asyncio & HTCondor Coroutine Scheduler',
+      icon: Activity,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 200,
+      y: 120,
+      width: 600,
+      height: 380,
+      zIndex: 12,
+    },
+    {
+      id: 'apps',
+      title: 'PyMACS Applications (Cardculator / BSI / RPA)',
+      icon: LayoutGrid,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 240,
+      y: 100,
+      width: 640,
+      height: 420,
+      zIndex: 13,
+    },
+  ]);
 
   // Mouse repulsion reference
   const pointerRef = useRef<{
@@ -101,7 +186,7 @@ export default function App() {
         x: x + (Math.random() - 0.5) * 60,
         y: y + (Math.random() - 0.5) * 60,
         vx: (Math.random() - 0.5) * 3,
-        vy: -4 - Math.random() * 4, // spawn with upward antigravity drift
+        vy: -4 - Math.random() * 4,
         mass,
         charge: 0.8,
         pinned: false,
@@ -111,22 +196,15 @@ export default function App() {
       },
       styles: {},
     };
-
     setNodes((prev) => [...prev, newNode]);
   };
 
-  // Trigger Antigravity Impulse Pulse across all nodes
-  const handleTriggerPulse = () => {
-    setNodes((prev) =>
-      prev.map((n) => ({
-        ...n,
-        physics: {
-          ...n.physics,
-          vy: n.physics.vy - 12 - Math.random() * 8, // upward thrust
-          vx: n.physics.vx + (Math.random() - 0.5) * 6,
-        },
-      }))
-    );
+  // Mount an entire DOM tree into the active physics canvas
+  const handleMountDOMTree = (newRoot: VirtualDOMNode) => {
+    setRootNode(newRoot);
+    setNodes(flattenDOMTree(newRoot));
+    setXmlContent(domToXML(newRoot));
+    setActiveTab('physics');
   };
 
   // Reset node positions
@@ -134,18 +212,6 @@ export default function App() {
     const parsed = parseXMLToDOM(xmlContent);
     setRootNode(parsed.root);
     setNodes(flattenDOMTree(parsed.root));
-  };
-
-  // Trigger re-optimization of media assets
-  const handleTriggerOptimization = () => {
-    setAssets((prev) =>
-      prev.map((a) => ({
-        ...a,
-        bufferLoadedPercent: 100,
-        isCached: true,
-      }))
-    );
-    setBufferLoadMs(0.8);
   };
 
   // Physics animation loop
@@ -165,18 +231,16 @@ export default function App() {
         enableRepulsion: true,
         springTethering: true,
         bounds: {
-          width: typeof window !== 'undefined' ? Math.max(800, window.innerWidth) : 1200,
-          height: typeof window !== 'undefined' ? Math.max(500, window.innerHeight - 150) : 650,
+          width: typeof window !== 'undefined' ? Math.max(800, window.innerWidth - 200) : 1000,
+          height: typeof window !== 'undefined' ? Math.max(500, window.innerHeight - 100) : 650,
         },
       };
 
       setNodes((currentNodes) => {
-        // Deep clone physics state for thread-safe mutation
         const nextNodes = currentNodes.map((n) => ({
           ...n,
           physics: { ...n.physics },
         }));
-
         stepPhysics(nextNodes, config, dt, pointerRef.current);
         return nextNodes;
       });
@@ -188,131 +252,274 @@ export default function App() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [gravityY]);
 
-  // Periodic Telemetry Loop: Worker Threads & Lambda Streams
+  // Periodic Telemetry Loop
   useEffect(() => {
     const timer = setInterval(() => {
       setWorkers((prev) => updateWorkerMetrics(prev));
       setLambdaStreams((prev) => tickLambdaStreams(prev, gravityY));
-      setBufferLoadMs((prev) => Math.max(0.7, Math.min(2.8, prev + (Math.random() - 0.5) * 0.3)));
-    }, 450);
+      setMetrics(TaskManager.getSystemMetrics());
+    }, 1200);
 
     return () => clearInterval(timer);
   }, [gravityY]);
 
+  // Window Management Actions
+  const handleOpenWindow = (winId: string) => {
+    if (isDesktopWindowMode) {
+      setWindows((prev) =>
+        prev.map((w) =>
+          w.id === winId
+            ? { ...w, isOpen: true, isMinimized: false, zIndex: Math.max(...prev.map((p) => p.zIndex)) + 1 }
+            : w
+        )
+      );
+    } else {
+      // In single tab mode, map winId to rail tab
+      const tabMap: Record<string, RailTab> = {
+        home: 'home',
+        shell: 'shell',
+        files: 'files',
+        tasks: 'tasks',
+        data: 'data',
+        physics: 'physics',
+        apps: 'apps',
+        search: 'search',
+        messages: 'messages',
+        cloud: 'cloud',
+        onchain: 'onchain',
+        api: 'api' as any,
+        profiler: 'profiler',
+        docs: 'docs',
+      };
+      if (tabMap[winId]) {
+        setActiveTab(tabMap[winId]);
+      }
+    }
+  };
+
+  const handleFocusWindow = (id: string) => {
+    setWindows((prev) => {
+      const maxZ = Math.max(...prev.map((w) => w.zIndex), 10);
+      return prev.map((w) => (w.id === id ? { ...w, zIndex: maxZ + 1 } : w));
+    });
+  };
+
+  const handleCloseWindow = (id: string) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, isOpen: false } : w)));
+  };
+
+  const handleMinimizeWindow = (id: string) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, isMinimized: true } : w)));
+  };
+
+  const handleToggleMaximizeWindow = (id: string) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w)));
+  };
+
+  const handleMoveWindow = (id: string, x: number, y: number) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, x, y } : w)));
+  };
+
+  const handleResizeWindow = (id: string, width: number, height: number) => {
+    setWindows((prev) => prev.map((w) => (w.id === id ? { ...w, width, height } : w)));
+  };
+
   const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
 
   return (
-    <div className="h-full w-full min-h-screen bg-[#0A0A0B] text-[#D1D1D1] font-sans flex flex-col overflow-hidden select-none">
-      {/* Top Header */}
-      <Header
+    <div className="h-full w-full min-h-screen bg-[#09090C] text-[#D1D1D1] font-mono flex flex-col overflow-hidden select-none">
+      {/* PyMACS Browser-OS Top Header */}
+      <PyMACSHeader
         gravityY={gravityY}
         setGravityY={setGravityY}
-        workerCount={workers.length}
-        bufferLoadMs={bufferLoadMs}
-        onTriggerPulse={handleTriggerPulse}
-        onResetLayout={handleResetLayout}
-      />
-
-      {/* Browser Chrome & Navigation Bar */}
-      <BrowserChrome
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        currentUrl={currentUrl}
-        setCurrentUrl={setCurrentUrl}
         selectedPreset={selectedPreset}
         onSelectPreset={handleSelectPreset}
-        onReload={handleResetLayout}
+        onResetLayout={handleResetLayout}
+        isDesktopWindowMode={isDesktopWindowMode}
+        onToggleWindowMode={() => setIsDesktopWindowMode(!isDesktopWindowMode)}
+        onOpenDocs={() => setActiveTab('docs')}
+        onOpenShell={() => {
+          if (isDesktopWindowMode) {
+            handleOpenWindow('shell');
+          } else {
+            setActiveTab('shell');
+          }
+        }}
       />
 
-      {/* Main Tab Views */}
-      <main className="flex-1 flex overflow-hidden relative">
-        {activeTab === 'viewport' && (
-          <AntigravityCanvas
-            nodes={nodes}
-            filters={filters}
-            gravityY={gravityY}
-            setGravityY={setGravityY}
-            selectedNodeId={selectedNodeId}
-            onSelectNode={setSelectedNodeId}
-            onSpawnNode={handleSpawnNode}
-            pointerRef={pointerRef}
-          />
-        )}
-
-        {activeTab === 'w3parser' && (
-          <XMLW3ParserView
-            xmlContent={xmlContent}
-            setXmlContent={setXmlContent}
-            filters={filters}
-            setFilters={setFilters}
-            onParseXML={handleParseXML}
-            rootNode={rootNode}
-          />
-        )}
-
-        {activeTab === 'jsonstore' && (
-          <JSONPersistenceView
-            rootNode={rootNode}
-            onUpdateRootNode={handleUpdateFromJSON}
-          />
-        )}
-
-        {activeTab === 'compiler' && (
-          <JSCompilerView
-            nodes={nodes}
-            setGravity={setGravityY}
-            onSpawnNode={handleSpawnNode}
-            defaultCode={selectedPreset.defaultScript}
-          />
-        )}
-
-        {activeTab === 'workers' && (
-          <WorkerThreadPoolView
-            workers={workers}
-            lambdaStreams={lambdaStreams}
-          />
-        )}
-
-        {activeTab === 'optimizer' && (
-          <MediaOptimizerView
-            assets={assets}
-            onTriggerOptimization={handleTriggerOptimization}
-          />
-        )}
-
-        {/* Selected Node Inspector Drawer / Modal */}
-        <NodeInspectorModal
-          node={selectedNode}
-          onClose={() => setSelectedNodeId(null)}
-          onApplyImpulse={(fx, fy) => {
-            if (selectedNode) {
-              selectedNode.physics.vx += fx;
-              selectedNode.physics.vy += fy;
-            }
+      {/* Main Command Rail & Workspace Layout */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Command Rail */}
+        <CommandRail
+          activeTab={activeTab}
+          onSelectTab={(tab) => {
+            setActiveTab(tab);
           }}
-          onTogglePin={() => {
-            if (selectedNode) {
-              selectedNode.physics.pinned = !selectedNode.physics.pinned;
-            }
-          }}
-          onUpdateMass={(m) => {
-            if (selectedNode) {
-              selectedNode.physics.mass = m;
-            }
-          }}
-          onUpdateCharge={(q) => {
-            if (selectedNode) {
-              selectedNode.physics.charge = q;
-            }
-          }}
+          metrics={metrics}
         />
-      </main>
 
-      {/* Bottom Footer */}
-      <Footer
-        systemStatus="System Stable • Microkernel Active"
-        bufferHex="0x2A3F9"
-        nodeCount={nodes.length}
+        {/* Central Workspace Area */}
+        <main className="flex-1 flex overflow-hidden relative bg-[#0C0C0F]">
+          {/* Main View rendering based on activeTab */}
+          {activeTab === 'home' && (
+            <DesktopHomeView
+              onOpenWindow={handleOpenWindow}
+              onMountToViewport={handleMountDOMTree}
+              currentRootNode={rootNode}
+            />
+          )}
+
+          {activeTab === 'shell' && (
+            <PythonShellWindow
+              currentRootNode={rootNode}
+              onUpdateRootNode={(newRoot) => {
+                setRootNode(newRoot);
+                setNodes(flattenDOMTree(newRoot));
+              }}
+              setGravityY={setGravityY}
+              onOpenWindow={handleOpenWindow}
+            />
+          )}
+
+          {activeTab === 'files' && <FilesystemWindow />}
+
+          {activeTab === 'tasks' && <TasksWindow />}
+
+          {activeTab === 'data' && (
+            <TranspilerPlaygroundView
+              currentRootNode={rootNode}
+              onUpdateRootNode={(newNode) => {
+                setRootNode(newNode);
+                setNodes(flattenDOMTree(newNode));
+              }}
+              onMountToViewport={() => {
+                setActiveTab('physics');
+              }}
+            />
+          )}
+
+          {activeTab === 'physics' && (
+            <AntigravityCanvas
+              nodes={nodes}
+              filters={filters}
+              gravityY={gravityY}
+              setGravityY={setGravityY}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={setSelectedNodeId}
+              onSpawnNode={handleSpawnNode}
+              pointerRef={pointerRef}
+            />
+          )}
+
+          {activeTab === 'apps' && (
+            <AppsWindow onMountToViewport={handleMountDOMTree} />
+          )}
+
+          {activeTab === 'search' && <SearchWindow />}
+
+          {activeTab === 'messages' && <MessagesWindow />}
+
+          {(activeTab === 'cloud' || activeTab === 'onchain') && (
+            <CloudOnChainWindow />
+          )}
+
+          {(activeTab as string) === 'api' && <ApiExplorerWindow />}
+
+          {activeTab === 'profiler' && <ProfilerWindow />}
+
+          {activeTab === 'docs' && (
+            <DocumentationView
+              onOpenTab={(tab) => {
+                if (tab === 'viewport') setActiveTab('physics');
+                else if (tab === 'playground') setActiveTab('data');
+                else if (tab === 'w3parser') setActiveTab('data');
+                else setActiveTab('home');
+              }}
+            />
+          )}
+
+          {/* Floating Desktop Windows when Window Mode is Enabled */}
+          {isDesktopWindowMode && (
+            <div className="absolute inset-0 pointer-events-none z-30">
+              {windows.map((win) => {
+                if (!win.isOpen || win.isMinimized) return null;
+                return (
+                  <div key={win.id} className="pointer-events-auto">
+                    <Window
+                      window={win}
+                      onFocus={handleFocusWindow}
+                      onClose={handleCloseWindow}
+                      onMinimize={handleMinimizeWindow}
+                      onToggleMaximize={handleToggleMaximizeWindow}
+                      onMove={handleMoveWindow}
+                      onResize={handleResizeWindow}
+                    >
+                      {win.id === 'shell' && (
+                        <PythonShellWindow
+                          currentRootNode={rootNode}
+                          onUpdateRootNode={(newRoot) => {
+                            setRootNode(newRoot);
+                            setNodes(flattenDOMTree(newRoot));
+                          }}
+                          setGravityY={setGravityY}
+                          onOpenWindow={handleOpenWindow}
+                        />
+                      )}
+                      {win.id === 'files' && <FilesystemWindow />}
+                      {win.id === 'tasks' && <TasksWindow />}
+                      {win.id === 'apps' && (
+                        <AppsWindow onMountToViewport={handleMountDOMTree} />
+                      )}
+                    </Window>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Selected Node Inspector Drawer / Modal */}
+          <NodeInspectorModal
+            node={selectedNode}
+            onClose={() => setSelectedNodeId(null)}
+            onApplyImpulse={(fx, fy) => {
+              if (selectedNode) {
+                selectedNode.physics.vx += fx;
+                selectedNode.physics.vy += fy;
+              }
+            }}
+            onTogglePin={() => {
+              if (selectedNode) {
+                selectedNode.physics.pinned = !selectedNode.physics.pinned;
+              }
+            }}
+            onUpdateMass={(m) => {
+              if (selectedNode) {
+                selectedNode.physics.mass = m;
+              }
+            }}
+            onUpdateCharge={(q) => {
+              if (selectedNode) {
+                selectedNode.physics.charge = q;
+              }
+            }}
+          />
+        </main>
+      </div>
+
+      {/* PyMACS System Status Bar matching ASCII diagram */}
+      <SystemStatusBar
+        metrics={metrics}
+        onOpenShell={() => {
+          if (isDesktopWindowMode) {
+            handleOpenWindow('shell');
+          } else {
+            setActiveTab('shell');
+          }
+        }}
+        onQuickCommand={(cmd) => {
+          setActiveTab('shell');
+        }}
+        activeBuffer={`Buffer[${activeTab.toUpperCase()}] 0x7FFA`}
       />
     </div>
   );

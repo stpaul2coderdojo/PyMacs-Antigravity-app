@@ -1,6 +1,6 @@
 import React from 'react';
 import { PRESETS, PresetData } from '../../data/presets';
-import { ExternalLink, Terminal, AppWindow, Maximize2, Zap, RefreshCw, BookOpen } from 'lucide-react';
+import { ExternalLink, Terminal, AppWindow, Maximize2, Zap, RefreshCw, BookOpen, Download, Info } from 'lucide-react';
 
 interface PyMACSHeaderProps {
   gravityY: number;
@@ -12,6 +12,9 @@ interface PyMACSHeaderProps {
   onToggleWindowMode: () => void;
   onOpenDocs: () => void;
   onOpenShell: () => void;
+  onOpenDescribe?: () => void;
+  onOpenPaper?: () => void;
+  onOpenDownloads?: () => void;
 }
 
 export const PyMACSHeader: React.FC<PyMACSHeaderProps> = ({
@@ -24,6 +27,9 @@ export const PyMACSHeader: React.FC<PyMACSHeaderProps> = ({
   onToggleWindowMode,
   onOpenDocs,
   onOpenShell,
+  onOpenDescribe,
+  onOpenPaper,
+  onOpenDownloads,
 }) => {
   return (
     <header
@@ -33,7 +39,7 @@ export const PyMACSHeader: React.FC<PyMACSHeaderProps> = ({
       {/* Left: Branding & Blog Reference */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="font-serif text-lg font-bold text-white tracking-tight">PyMACS</span>
+          <span className="font-serif text-lg font-bold text-white tracking-tight">PyMacs</span>
           <span className="text-[10px] bg-[#1E1E26] text-gray-400 px-1.5 py-0.5 rounded border border-[#2B2B36]">
             Browser OS
           </span>
@@ -92,7 +98,43 @@ export const PyMACSHeader: React.FC<PyMACSHeaderProps> = ({
       </div>
 
       {/* Right: Mode & Status matching ASCII diagram */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
+        {/* Describe Link */}
+        {onOpenDescribe && (
+          <button
+            onClick={onOpenDescribe}
+            className="hidden sm:flex items-center gap-1 text-[11px] text-gray-300 hover:text-white px-2 py-1 bg-[#14141A] hover:bg-[#1C1C26] rounded border border-[#262632] cursor-pointer transition-colors"
+            title="Describe PyMacs architecture and origins"
+          >
+            <Info className="w-3.5 h-3.5 text-[#38BDF8]" />
+            <span>Describe</span>
+          </button>
+        )}
+
+        {/* arXiv Paper Button */}
+        {onOpenPaper && (
+          <button
+            onClick={onOpenPaper}
+            className="flex items-center gap-1 text-[11px] text-gray-200 hover:text-white px-2.5 py-1 bg-[#1C1C24] hover:bg-[#252532] rounded border border-[#2F2F3D] font-semibold cursor-pointer transition-colors"
+            title="Open formal arXiv research paper & LaTeX sources"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#60A5FA]" />
+            <span className="hidden sm:inline">arXiv Paper</span>
+          </button>
+        )}
+
+        {/* Downloads & Docker Hub */}
+        {onOpenDownloads && (
+          <button
+            onClick={onOpenDownloads}
+            className="flex items-center gap-1 text-[11px] text-white px-2.5 py-1 bg-[#2563EB] hover:bg-[#1D4ED8] rounded font-semibold cursor-pointer transition-colors shadow-sm"
+            title="Download APK, iOS, Windows, and Docker container"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Builds &amp; Docker</span>
+          </button>
+        )}
+
         {/* Toggle Window Desktop Mode vs Single Tab View */}
         <button
           onClick={onToggleWindowMode}

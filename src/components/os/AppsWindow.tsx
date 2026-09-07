@@ -104,7 +104,7 @@ export const AppsWindow: React.FC<AppsWindowProps> = ({ onMountToViewport }) => 
       {/* App Selector Nav */}
       <div className="w-56 border-r border-[#26262E] bg-[#131317] p-3 space-y-1 shrink-0">
         <div className="text-[10px] uppercase text-gray-500 font-semibold mb-2 tracking-wider">
-          PyMACS Native Apps
+          PyMacs Native Apps
         </div>
 
         <button

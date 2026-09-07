@@ -13,10 +13,15 @@ import {
   BarChart2,
   Atom,
   BookOpen,
+  Download,
+  Info,
 } from 'lucide-react';
 
 export type RailTab =
   | 'home'
+  | 'describe'
+  | 'paper'
+  | 'downloads'
   | 'shell'
   | 'files'
   | 'tasks'
@@ -47,10 +52,13 @@ export const CommandRail: React.FC<CommandRailProps> = ({
 }) => {
   const topNavItems: { id: RailTab; label: string; icon: any; hotkey?: string }[] = [
     { id: 'home', label: 'HOME', icon: Home, hotkey: 'M-h' },
+    { id: 'describe', label: 'DESCRIBE', icon: Info, hotkey: 'M-i' },
+    { id: 'paper', label: 'ARXIV', icon: BookOpen, hotkey: 'M-r' },
+    { id: 'downloads', label: 'DOWNLOADS', icon: Download, hotkey: 'M-d' },
     { id: 'shell', label: 'PYTHON', icon: Terminal, hotkey: 'M-p' },
     { id: 'files', label: 'FILES', icon: Folder, hotkey: 'M-f' },
     { id: 'tasks', label: 'TASKS', icon: Cpu, hotkey: 'M-t' },
-    { id: 'data', label: 'DATA', icon: Database, hotkey: 'M-d' },
+    { id: 'data', label: 'DATA', icon: Database },
     { id: 'physics', label: 'PHYSICS', icon: Atom, hotkey: 'M-g' },
     { id: 'apps', label: 'APPS', icon: LayoutGrid, hotkey: 'M-a' },
     { id: 'search', label: 'SEARCH', icon: Search, hotkey: 'M-s' },
@@ -69,7 +77,7 @@ export const CommandRail: React.FC<CommandRailProps> = ({
         <div className="p-3 border-b border-[#1A1A20] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#4ADE80]"></div>
-            <span className="font-bold tracking-wider text-white">PyMACS</span>
+            <span className="font-bold tracking-wider text-white">PyMacs</span>
           </div>
           <span className="text-[9px] text-gray-500 uppercase tracking-widest">OS v4.2</span>
         </div>

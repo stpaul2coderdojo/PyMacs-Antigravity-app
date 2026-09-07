@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  pymacs-os:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pymacs/browser-os:v4.2.0
+    container_name: pymacs_container
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PYMACS_MICROKERNEL_PORT=3000
+      - PYMACS_ARCH=browser-posix
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      org.opencontainers.image.title: "PyMacs"
+      org.opencontainers.image.description: "An Operating System in Python with Antigravity DOM Engine"
+      org.opencontainers.image.version: "4.2.0"
+      org.opencontainers.image.authors: "Dr. Bheemaiah Anil K"

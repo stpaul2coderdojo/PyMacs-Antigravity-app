@@ -1,9 +1,21 @@
-# PyMACS: Microkernel, Computable Maps & Antigravity DOM Engine
+# PyMacs: Microkernel, Computable Maps & Antigravity DOM Engine
 
 > **Official Research & Reference:** [https://pymacs.wordpress.com](https://pymacs.wordpress.com)  
 > **Author & Principal Architect:** Dr. Bheemaiah Anil K (`bheemaiah@alumni.iitm.ac.in`)  
+> **Academic Paper:** [`paper/pymacs_paper.tex`](paper/pymacs_paper.tex) (arXiv Preprint Format)  
 > **Architecture Paradigm:** `JSON = XML = DOM` Isomorphism • Provable Markup Language (PML) • W3C DOM Level-3  
 > **License:** Apache-2.0
+
+---
+
+## 📜 arXiv Research Paper
+
+The formal academic paper detailing the mathematical equivalence and physical architecture of PyMacs is located in [`paper/`](paper/):
+
+- **Title:** *PyMacs: An Operating System in Python with Reactive Document Object Model, Antigravity Physics, and Bi-Directional JSON=XML=DOM Algebraic Equivalence*
+- **LaTeX Source:** [`paper/pymacs_paper.tex`](paper/pymacs_paper.tex)
+- **Bibliography:** [`paper/references.bib`](paper/references.bib) (Rigorous citations, no hallucinated URLs)
+- **CI/CD Workflow:** [`.github/workflows/paper.yml`](.github/workflows/paper.yml) (Automated PDF compilation via GitHub Actions)
 
 ---
 

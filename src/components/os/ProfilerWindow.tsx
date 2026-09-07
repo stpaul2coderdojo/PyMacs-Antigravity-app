@@ -27,7 +27,7 @@ export const ProfilerWindow: React.FC = () => {
       <div className="p-3 bg-[#16161C] border-b border-[#26262E] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-[#38BDF8]" />
-          <span className="font-semibold text-gray-200">PyMACS Hardware &amp; Microkernel Profiler</span>
+          <span className="font-semibold text-gray-200">PyMacs Hardware &amp; Microkernel Profiler</span>
         </div>
         <span className="text-[10px] text-[#4ADE80] bg-[#4ADE80]/10 px-2 py-0.5 rounded border border-[#4ADE80]/20 font-bold">
           LIVE TELEMETRY

@@ -12,9 +12,9 @@ interface SearchResult {
 const SEARCH_INDEX: SearchResult[] = [
   {
     id: 'res_1',
-    title: 'An Operating System in Python: PyMACS Architecture',
+    title: 'An Operating System in Python: PyMacs Architecture',
     category: 'academic',
-    snippet: 'PyMACS evolves from the Cardculator into a browser OS with cloud, on-chain and API functionality. JSON=XML=DOM architectural equivalence with reactive Antigravity rendering.',
+    snippet: 'PyMacs evolves from the Cardculator into a browser OS with cloud, on-chain and API functionality. JSON=XML=DOM architectural equivalence with reactive Antigravity rendering.',
     source: 'pymacs.wordpress.com',
   },
   {
@@ -78,7 +78,7 @@ export const SearchWindow: React.FC = () => {
             type="text"
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search PyMACS documentation, VFS files, PML proofs, and synopsis..."
+            placeholder="Search PyMacs documentation, VFS files, PML proofs, and synopsis..."
             className="w-full bg-[#101014] text-gray-100 pl-9 pr-3 py-2 rounded border border-[#2D2D35] focus:outline-none focus:border-[#38BDF8] text-xs font-mono"
             autoFocus
           />

@@ -1,0 +1,35 @@
+name: Compile arXiv Paper PDF
+
+on:
+  push:
+    paths:
+      - 'paper/**'
+      - '.github/workflows/paper.yml'
+    branches: [ main, master ]
+  pull_request:
+    paths:
+      - 'paper/**'
+  workflow_dispatch:
+
+jobs:
+  build-paper:
+    name: Compile PyMacs arXiv Preprint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX Document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: pymacs_paper.tex
+          working_directory: paper
+          latexmk_use_bibtex: true
+          args: "-pdf -file-line-error -halt-on-error -interaction=nonstopmode"
+
+      - name: Upload Compiled PDF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PyMacs-arXiv-Preprint-PDF
+          path: paper/pymacs_paper.pdf
+          retention-days: 90

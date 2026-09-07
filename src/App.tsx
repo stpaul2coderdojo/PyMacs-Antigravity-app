@@ -27,6 +27,9 @@ import { CloudOnChainWindow } from './components/os/CloudOnChainWindow';
 import { AppsWindow } from './components/os/AppsWindow';
 import { ProfilerWindow } from './components/os/ProfilerWindow';
 import { ApiExplorerWindow } from './components/os/ApiExplorerWindow';
+import { DownloadsAndDockerWindow } from './components/os/DownloadsAndDockerWindow';
+import { DescribePyMacsView } from './components/os/DescribePyMacsView';
+import { PaperViewerWindow } from './components/os/PaperViewerWindow';
 import { Window, WindowState } from './components/os/WindowManager';
 
 // Core Engines
@@ -50,6 +53,9 @@ import {
   Link,
   BarChart2,
   Code2,
+  Download,
+  Info,
+  BookOpen,
 } from 'lucide-react';
 
 export default function App() {
@@ -77,7 +83,7 @@ export default function App() {
   const [windows, setWindows] = useState<WindowState[]>([
     {
       id: 'shell',
-      title: 'PyMACS Python Shell (Emacs Mode)',
+      title: 'PyMacs Python Shell (Emacs Mode)',
       icon: Terminal,
       isOpen: false,
       isMinimized: false,
@@ -116,7 +122,7 @@ export default function App() {
     },
     {
       id: 'apps',
-      title: 'PyMACS Applications (Cardculator / BSI / RPA)',
+      title: 'PyMacs Applications (Cardculator / BSI / RPA)',
       icon: LayoutGrid,
       isOpen: false,
       isMinimized: false,
@@ -126,6 +132,45 @@ export default function App() {
       width: 640,
       height: 420,
       zIndex: 13,
+    },
+    {
+      id: 'downloads',
+      title: 'PyMacs Downloads & Docker Container Hub',
+      icon: Download,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 100,
+      y: 60,
+      width: 680,
+      height: 480,
+      zIndex: 14,
+    },
+    {
+      id: 'describe',
+      title: 'About PyMacs - An Operating System in Python',
+      icon: Info,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 80,
+      y: 50,
+      width: 720,
+      height: 520,
+      zIndex: 15,
+    },
+    {
+      id: 'paper',
+      title: 'PyMacs arXiv Research Paper & LaTeX Sources',
+      icon: BookOpen,
+      isOpen: false,
+      isMinimized: false,
+      isMaximized: false,
+      x: 90,
+      y: 55,
+      width: 780,
+      height: 560,
+      zIndex: 16,
     },
   ]);
 
@@ -277,6 +322,9 @@ export default function App() {
       // In single tab mode, map winId to rail tab
       const tabMap: Record<string, RailTab> = {
         home: 'home',
+        describe: 'describe',
+        paper: 'paper',
+        downloads: 'downloads',
         shell: 'shell',
         files: 'files',
         tasks: 'tasks',
@@ -345,6 +393,15 @@ export default function App() {
             setActiveTab('shell');
           }
         }}
+        onOpenDescribe={() => setActiveTab('describe')}
+        onOpenPaper={() => {
+          if (isDesktopWindowMode) {
+            handleOpenWindow('paper');
+          } else {
+            setActiveTab('paper');
+          }
+        }}
+        onOpenDownloads={() => setActiveTab('downloads')}
       />
 
       {/* Main Command Rail & Workspace Layout */}
@@ -367,6 +424,22 @@ export default function App() {
               onMountToViewport={handleMountDOMTree}
               currentRootNode={rootNode}
             />
+          )}
+
+          {activeTab === 'describe' && (
+            <DescribePyMacsView
+              onOpenDownloads={() => setActiveTab('downloads')}
+              onOpenPlayground={() => setActiveTab('data')}
+              onOpenShell={() => setActiveTab('shell')}
+            />
+          )}
+
+          {activeTab === 'paper' && (
+            <PaperViewerWindow />
+          )}
+
+          {activeTab === 'downloads' && (
+            <DownloadsAndDockerWindow />
           )}
 
           {activeTab === 'shell' && (
@@ -470,6 +543,15 @@ export default function App() {
                       {win.id === 'apps' && (
                         <AppsWindow onMountToViewport={handleMountDOMTree} />
                       )}
+                      {win.id === 'downloads' && <DownloadsAndDockerWindow />}
+                      {win.id === 'describe' && (
+                        <DescribePyMacsView
+                          onOpenDownloads={() => handleOpenWindow('downloads')}
+                          onOpenPlayground={() => setActiveTab('data')}
+                          onOpenShell={() => handleOpenWindow('shell')}
+                        />
+                      )}
+                      {win.id === 'paper' && <PaperViewerWindow />}
                     </Window>
                   </div>
                 );

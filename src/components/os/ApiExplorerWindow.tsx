@@ -117,7 +117,7 @@ export const ApiExplorerWindow: React.FC = () => {
       {/* Endpoints list */}
       <div className="w-64 border-r border-[#26262E] bg-[#131317] p-2.5 space-y-1 shrink-0 overflow-y-auto">
         <div className="text-[10px] uppercase text-gray-500 font-semibold mb-2 px-1">
-          PyMACS REST API Explorer
+          PyMacs REST API Explorer
         </div>
 
         {ENDPOINTS.map((ep) => (

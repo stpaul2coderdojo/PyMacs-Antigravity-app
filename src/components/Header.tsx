@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="text-2xl lg:text-3xl font-normal tracking-tight text-white"
                 style={{ fontFamily: "'Lora', 'Georgia', serif" }}
               >
-                PyMACS
+                PyMacs
               </h1>
               <span className="text-xs font-mono tracking-widest text-[#4ADE80] uppercase hidden sm:inline">
                 ANTIGRAVITY DOM

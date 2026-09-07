@@ -11,7 +11,7 @@ export interface PresetData {
 export const PRESETS: PresetData[] = [
   {
     id: 'pymacs_microkernel',
-    name: 'PyMACS Antigravity Microkernel',
+    name: 'PyMacs Antigravity Microkernel',
     description: 'Autonomous microkernel architecture from pymacs.wordpress.com with null gravity vector, reactive functionoids, and W3 DOM',
     gravityY: -2.5, // Null / upward antigravity float!
     gravityX: 0,
@@ -22,13 +22,13 @@ export const PRESETS: PresetData[] = [
   <Filter type="chromatic" strength="0.8" target="core"/>
 
   <Layer id="kernel_core" mass="2.5" radius="58" charge="1.2" x="220" y="240" style="color:#ffffff;border:#4ADE80">
-    <Title>PyMACS Microkernel Core</Title>
+    <Title>PyMacs Microkernel Core</Title>
     <Status>KERNEL_ONLINE</Status>
     <Vector field="[0, -9.81, 0]"/>
     <Thread pool="8" scheduler="HTCondor-Shadow"/>
     
     <Terminal id="term_01" mass="1.0" radius="46" charge="0.5" x="420" y="160">
-      <Title>PyMACS TTY Console</Title>
+      <Title>PyMacs TTY Console</Title>
       <Command>pymacs.boot --antigravity --w3</Command>
     </Terminal>
 
@@ -48,9 +48,9 @@ export const PRESETS: PresetData[] = [
     <Codec>AV1/VP9 Stream Cache</Codec>
   </OptimizerNode>
 </DOM_SCHEMA>`,
-    defaultScript: `// PyMACS DOM JavaScript Execution Engine
+    defaultScript: `// PyMacs DOM JavaScript Execution Engine
 // Testing JSON = XML = DOM manipulation
-console.log("Initializing PyMACS Antigravity DOM Script...");
+console.log("Initializing PyMacs Antigravity DOM Script...");
 
 // Adjust gravity vector dynamically
 document.setGravity(-4.5);
@@ -59,7 +59,7 @@ document.setGravity(-4.5);
 const core = document.getElementById("kernel_core");
 if (core) {
   core.applyForce(0, -18);
-  console.log("Lifting PyMACS Kernel Core into antigravity suspension");
+  console.log("Lifting PyMacs Kernel Core into antigravity suspension");
 }
 
 // Spawn a new reactive W3 DOM node
@@ -78,7 +78,7 @@ console.log("Spawned ReactiveTag node dynamically via JIT compiler!");
   <Filter type="glow" strength="2.0" target="active"/>
 
   <BrowserWindow id="main_window" mass="3.0" radius="65" charge="1.0" x="280" y="200">
-    <Title>PyMACS Browser Viewport</Title>
+    <Title>PyMacs Browser Viewport</Title>
     <Protocol>pymacs://antigravity.sys</Protocol>
     
     <NavigationNode id="nav_bar" mass="1.1" radius="44" charge="0.3" x="480" y="140">

@@ -41,7 +41,7 @@ export const SystemStatusBar: React.FC<SystemStatusBarProps> = ({
           title="Open interactive Python/Emacs REPL"
         >
           <Terminal className="w-3.5 h-3.5 text-[#38BDF8]" />
-          <span>PyMACS Shell</span>
+          <span>PyMacs Shell</span>
         </button>
 
         <form onSubmit={handleQuickSubmit} className="hidden md:flex items-center gap-1.5 bg-[#121216] px-2 py-0.5 rounded border border-[#202028]">

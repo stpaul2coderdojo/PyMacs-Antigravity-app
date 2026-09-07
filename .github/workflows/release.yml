@@ -1,0 +1,129 @@
+name: Create PyMacs Multiplatform GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v4.2.0)'
+        required: true
+        default: 'v4.2.0'
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    name: Build Multiplatform Packages & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies & Lint
+        run: |
+          npm ci || npm install
+          npm run lint
+
+      - name: Build Web Production Distribution
+        run: npm run build
+
+      - name: Compile arXiv Paper PDF (if LaTeX available)
+        continue-on-error: true
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: pymacs_paper.tex
+          working_directory: paper
+          latexmk_use_bibtex: true
+          args: "-pdf -file-line-error -halt-on-error -interaction=nonstopmode"
+
+      - name: Copy Compiled Paper PDF to Downloads
+        run: |
+          if [ -f "paper/pymacs_paper.pdf" ]; then
+            cp paper/pymacs_paper.pdf public/downloads/
+          fi
+
+      - name: Build & Package Windows 8, 10, 11 Deliverables
+        run: |
+          mkdir -p release-assets
+          python3 scripts/build_packages.py --platform windows
+          cp public/downloads/pymacs-v4.2.0-win8-win10-win11-setup.exe release-assets/
+          cp public/downloads/pymacs-v4.2.0-win8-win10-win11-portable.zip release-assets/
+
+      - name: Build & Package Android APK Deliverables
+        run: |
+          python3 scripts/build_packages.py --platform android
+          cp public/downloads/pymacs-v4.2.0-android.apk release-assets/
+
+      - name: Build & Export Docker Container Image
+        run: |
+          docker build -t pymacs:${{ github.ref_name || inputs.version || 'v4.2.0' }} .
+          docker save pymacs:${{ github.ref_name || inputs.version || 'v4.2.0' }} | gzip > release-assets/pymacs-${{ github.ref_name || inputs.version || 'v4.2.0' }}-docker-image.tar.gz
+
+      - name: Copy Pre-built Deliverables and Compute Checksums
+        run: |
+          cp public/downloads/pymacs_paper.tex release-assets/ || true
+          cp public/downloads/references.bib release-assets/ || true
+          if [ -f "public/downloads/pymacs_paper.pdf" ]; then
+            cp public/downloads/pymacs_paper.pdf release-assets/
+          fi
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker Image to GHCR
+        if: github.event_name != 'pull_request'
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          TAG="${{ github.ref_name || inputs.version || 'v4.2.0' }}"
+          docker tag pymacs:$TAG ghcr.io/$REPO_LOWER:$TAG
+          docker tag pymacs:$TAG ghcr.io/$REPO_LOWER:latest
+          docker push ghcr.io/$REPO_LOWER:$TAG || echo "Skipped GHCR push"
+          docker push ghcr.io/$REPO_LOWER:latest || echo "Skipped GHCR push"
+
+      - name: Generate Release Notes Body
+        id: release_notes
+        run: |
+          VERSION="${{ github.ref_name || inputs.version || 'v4.2.0' }}"
+          echo "tag_name=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish Official GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_notes.outputs.tag_name }}
+          name: "PyMacs Release ${{ steps.release_notes.outputs.tag_name }} (Docker, Android, Windows 8/10/11)"
+          body_path: RELEASE_NOTES_v4.2.0.md
+          draft: false
+          prerelease: ${{ inputs.prerelease || false }}
+          files: |
+            release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

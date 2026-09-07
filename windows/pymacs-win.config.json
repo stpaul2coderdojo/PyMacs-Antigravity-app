@@ -1,0 +1,18 @@
+{
+  "name": "PyMacs",
+  "version": "4.2.0",
+  "targetOS": ["Windows 8", "Windows 8.1", "Windows 10", "Windows 11"],
+  "architectures": ["x86_64", "x86"],
+  "engine": "Chromium / WebView2 with Python 3.12 VFS bridge",
+  "graphics": {
+    "directX": "11.0 / 12.0",
+    "antigravityRenderer": "Hardware Accelerated with Software Fallback for Win8",
+    "targetFPS": 60
+  },
+  "subsystem": {
+    "defaultPort": 3000,
+    "threadVFS": true,
+    "asyncioScheduler": true,
+    "htcondorShadowBridge": true
+  }
+}

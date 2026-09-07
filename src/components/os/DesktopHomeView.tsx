@@ -214,7 +214,7 @@ export const DesktopHomeView: React.FC<DesktopHomeViewProps> = ({
                 <Download className="w-3 h-3 text-gray-500 group-hover:text-white" />
               </div>
               <div className="text-[10px] text-gray-400 mt-1 font-mono">pymacs.apk</div>
-              <div className="text-[9px] text-[#10B981] mt-0.5">Android 14 • 28MB</div>
+              <div className="text-[9px] text-[#10B981] mt-0.5">Android 8.0 - 14</div>
             </a>
 
             {/* iOS profile download */}
@@ -234,21 +234,21 @@ export const DesktopHomeView: React.FC<DesktopHomeViewProps> = ({
               <div className="text-[9px] text-[#F59E0B] mt-0.5">Safari WebClip</div>
             </a>
 
-            {/* Windows download */}
+            {/* Windows 8, 10, 11 download */}
             <a
-              href="/downloads/pymacs-v4.2.0-windows-x64.exe"
-              download="pymacs-v4.2.0-windows-x64.exe"
+              href="/downloads/pymacs-v4.2.0-win8-win10-win11-setup.exe"
+              download="pymacs-v4.2.0-win8-win10-win11-setup.exe"
               className="p-2.5 bg-[#171720] hover:bg-[#1E1E2A] border border-[#252534] hover:border-[#38BDF8]/40 rounded text-left transition-colors cursor-pointer group"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-white text-xs font-semibold group-hover:text-[#38BDF8]">
                   <Monitor className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  <span>Windows x64</span>
+                  <span>Win 8, 10, 11</span>
                 </div>
                 <Download className="w-3 h-3 text-gray-500 group-hover:text-white" />
               </div>
-              <div className="text-[10px] text-gray-400 mt-1 font-mono">pymacs-x64.exe</div>
-              <div className="text-[9px] text-[#38BDF8] mt-0.5">Standalone • 54MB</div>
+              <div className="text-[10px] text-gray-400 mt-1 font-mono">win8-10-11.exe</div>
+              <div className="text-[9px] text-[#38BDF8] mt-0.5">Universal Setup &amp; Zip</div>
             </a>
           </div>
         </div>

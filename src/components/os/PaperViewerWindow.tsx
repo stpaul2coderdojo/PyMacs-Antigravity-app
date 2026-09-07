@@ -15,10 +15,12 @@ import {
   Bookmark,
   ShieldCheck,
   FileCode,
+  GitBranch,
 } from 'lucide-react';
 
 export const PaperViewerWindow: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'article' | 'latex' | 'bibtex' | 'github'>('article');
+  const [activeTab, setActiveTab] = useState<'article' | 'latex' | 'bibtex' | 'git'>('article');
+  const [gitProvider, setGitProvider] = useState<'gitlab' | 'github'>('gitlab');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (text: string, id: string) => {
@@ -27,18 +29,41 @@ export const PaperViewerWindow: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const gitCommands = [
+  const gitlabCommands = [
     {
-      label: '1. Create remote on your GitHub account',
-      cmd: 'git remote add origin https://github.com/bheemaiah-anil/pymacs.git',
+      label: '1. Connect GitLab remote repository',
+      cmd: 'git remote add gitlab https://gitlab.com/bheemaiah-anil/pymacs.git',
+    },
+    {
+      label: '2. Push main branch and release tags to GitLab',
+      cmd: 'git push -u gitlab main --tags',
+    },
+    {
+      label: '3. Automated GitLab CI/CD Pipeline (.gitlab-ci.yml)',
+      cmd: 'glab ci run || gitlab-runner exec docker build_app',
+    },
+    {
+      label: '4. GitLab Releases & Container Registry (registry.gitlab.com)',
+      cmd: 'git push gitlab v4.2.0',
+    },
+  ];
+
+  const githubCommands = [
+    {
+      label: '1. Connect GitHub remote repository',
+      cmd: 'git remote add github https://github.com/bheemaiah-anil/pymacs.git',
     },
     {
       label: '2. Push main branch with paper, Docker & builds',
-      cmd: 'git push -u origin main',
+      cmd: 'git push -u github main --tags',
     },
     {
       label: '3. Automated arXiv PDF build via GitHub Actions',
       cmd: 'gh workflow run paper.yml',
+    },
+    {
+      label: '4. Publish multiplatform release (Docker, Android, Windows)',
+      cmd: 'git push github v4.2.0',
     },
   ];
 
@@ -127,15 +152,15 @@ export const PaperViewerWindow: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('github')}
+            onClick={() => setActiveTab('git')}
             className={`px-3 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'github'
-                ? 'bg-[#2563EB] text-white'
+              activeTab === 'git'
+                ? 'bg-[#E24329] text-white'
                 : 'bg-[#181820] text-gray-400 hover:text-gray-200'
             }`}
           >
-            <Github className="w-3.5 h-3.5 text-white" />
-            <span>GitHub Sync &amp; CI</span>
+            <GitBranch className="w-3.5 h-3.5" />
+            <span>GitLab &amp; GitHub Sync</span>
           </button>
         </div>
       </div>
@@ -373,48 +398,110 @@ export const PaperViewerWindow: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 4: GitHub Sync & CI/CD */}
-        {activeTab === 'github' && (
+        {/* Tab 4: GitLab & GitHub Sync */}
+        {activeTab === 'git' && (
           <div className="space-y-4 max-w-2xl mx-auto">
-            <div className="bg-[#121218] border border-[#242432] p-5 rounded-lg space-y-3">
-              <div className="flex items-center gap-2 text-white text-sm font-bold">
-                <Github className="w-5 h-5 text-white" />
-                <span>GitHub Repository &amp; Automated LaTeX Action</span>
-              </div>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                The local Git repository has been initialized with the complete paper source, BibTeX bibliography, Docker configuration, and a GitHub Actions workflow that compiles the LaTeX paper to PDF on every commit.
-              </p>
+            {/* Provider Switcher Tabs */}
+            <div className="flex items-center justify-between bg-[#121218] p-1.5 rounded-lg border border-[#242432]">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setGitProvider('gitlab')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                    gitProvider === 'gitlab'
+                      ? 'bg-[#E24329] text-white shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <span className="font-bold">🦊 GitLab</span>
+                  <span className="text-[10px] py-0.2 px-1 rounded bg-black/30 text-[#FDBA74]">.gitlab-ci.yml</span>
+                </button>
 
-              <div className="bg-[#0A0A0D] p-3 rounded border border-[#202028] text-xs space-y-2">
-                <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Repository Files Committed:</div>
-                <div className="font-mono text-[11px] text-gray-300 space-y-1">
-                  <div>📁 <span className="text-[#38BDF8]">paper/pymacs_paper.tex</span> (arXiv preprint manuscript)</div>
-                  <div>📁 <span className="text-[#F59E0B]">paper/references.bib</span> (ACM / IEEE verified citations)</div>
-                  <div>📁 <span className="text-[#4ADE80]">.github/workflows/paper.yml</span> (Automated LaTeX compiler)</div>
-                  <div>📁 <span className="text-gray-400">Dockerfile &amp; docker-compose.yml</span> (OCI container)</div>
-                </div>
+                <button
+                  onClick={() => setGitProvider('github')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                    gitProvider === 'github'
+                      ? 'bg-[#2563EB] text-white shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Github className="w-3.5 h-3.5" />
+                  <span>GitHub</span>
+                  <span className="text-[10px] py-0.2 px-1 rounded bg-black/30 text-[#93C5FD]">Actions</span>
+                </button>
+              </div>
+
+              <div className="text-[11px] text-gray-400 hidden sm:block pr-2">
+                Git Remotes Configured
               </div>
             </div>
 
+            {/* Provider Content */}
+            {gitProvider === 'gitlab' ? (
+              <div className="bg-[#121218] border border-[#242432] p-5 rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-white text-sm font-bold">
+                    <span className="text-xl">🦊</span>
+                    <span>GitLab Remote &amp; Multi-Stage CI/CD Pipeline</span>
+                  </div>
+                  <span className="px-2 py-0.5 text-[10px] bg-[#E24329]/20 text-[#FC6D26] border border-[#E24329]/40 rounded font-semibold">
+                    Native GitLab Support
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  The local Git repository includes a fully configured <strong>.gitlab-ci.yml</strong> pipeline. When pushed to GitLab, it runs automated linting, builds the production Vite applet, compiles the LaTeX arXiv preprint to PDF via TeXLive, and builds the container image for the <strong>GitLab Container Registry</strong> (<code className="text-[#38BDF8]">registry.gitlab.com</code>).
+                </p>
+
+                <div className="bg-[#0A0A0D] p-3 rounded border border-[#202028] text-xs space-y-2">
+                  <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">GitLab Configuration Files:</div>
+                  <div className="font-mono text-[11px] text-gray-300 space-y-1">
+                    <div>🦊 <span className="text-[#FC6D26]">.gitlab-ci.yml</span> (5-stage CI: test, build, paper, package, release)</div>
+                    <div>📁 <span className="text-[#38BDF8]">paper/pymacs_paper.tex</span> (Compiled automatically with TeXLive to PDF)</div>
+                    <div>📁 <span className="text-[#4ADE80]">Dockerfile &amp; docker-compose.yml</span> (Pushed to GitLab Container Registry)</div>
+                    <div>📁 <span className="text-[#F59E0B]">RELEASE_NOTES_v4.2.0.md</span> (Auto-published to GitLab Releases)</div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-[#121218] border border-[#242432] p-5 rounded-lg space-y-3">
+                <div className="flex items-center gap-2 text-white text-sm font-bold">
+                  <Github className="w-5 h-5 text-white" />
+                  <span>GitHub Repository &amp; Actions Workflows</span>
+                </div>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  Includes GitHub Actions workflows to compile the LaTeX paper to PDF and publish multiplatform artifacts on release tags.
+                </p>
+
+                <div className="bg-[#0A0A0D] p-3 rounded border border-[#202028] text-xs space-y-2">
+                  <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">GitHub Files Committed:</div>
+                  <div className="font-mono text-[11px] text-gray-300 space-y-1">
+                    <div>📁 <span className="text-[#38BDF8]">paper/pymacs_paper.tex</span> (arXiv preprint manuscript)</div>
+                    <div>📁 <span className="text-[#A855F7]">.github/workflows/paper.yml</span> (LaTeX to PDF action)</div>
+                    <div>📁 <span className="text-[#A855F7]">.github/workflows/release.yml</span> (Multiplatform release action)</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Commands to push */}
             <div className="space-y-2.5">
-              <div className="text-xs font-bold text-white uppercase tracking-wider">
-                Sync to your GitHub account:
+              <div className="text-xs font-bold text-white uppercase tracking-wider flex items-center justify-between">
+                <span>Commands to push to {gitProvider === 'gitlab' ? 'GitLab' : 'GitHub'}:</span>
+                <span className="text-[10px] text-gray-400 font-normal">Remote URL: {gitProvider === 'gitlab' ? 'https://gitlab.com/bheemaiah-anil/pymacs.git' : 'https://github.com/bheemaiah-anil/pymacs.git'}</span>
               </div>
-              {gitCommands.map((item, idx) => (
+              {(gitProvider === 'gitlab' ? gitlabCommands : githubCommands).map((item, idx) => (
                 <div key={idx} className="bg-[#14141C] border border-[#22222E] rounded p-3 space-y-1">
                   <div className="flex items-center justify-between text-[11px] text-gray-400">
                     <span>{item.label}</span>
                     <button
-                      onClick={() => handleCopy(item.cmd, `git-${idx}`)}
+                      onClick={() => handleCopy(item.cmd, `${gitProvider}-${idx}`)}
                       className="flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer"
                     >
-                      {copiedId === `git-${idx}` ? (
+                      {copiedId === `${gitProvider}-${idx}` ? (
                         <Check className="w-3 h-3 text-[#4ADE80]" />
                       ) : (
                         <Copy className="w-3 h-3" />
                       )}
-                      <span>{copiedId === `git-${idx}` ? 'Copied' : 'Copy'}</span>
+                      <span>{copiedId === `${gitProvider}-${idx}` ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
                   <div className="font-mono text-xs text-[#38BDF8] bg-[#0C0C10] p-2 rounded border border-[#1A1A22] overflow-x-auto whitespace-pre">

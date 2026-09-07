@@ -1,0 +1,95 @@
+# PyMacs Multiplatform GitLab CI/CD Pipeline
+# Author: Dr. Bheemaiah Anil K
+# Repository: https://gitlab.com/bheemaiah-anil/pymacs
+
+stages:
+  - test
+  - build
+  - paper
+  - package
+  - release
+
+variables:
+  NODE_VERSION: "20"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+# 1. Automated Lint & Type-Check
+lint:
+  stage: test
+  image: node:20-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run lint
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# 2. Production Vite Build
+build_app:
+  stage: build
+  image: node:20-alpine
+  before_script:
+    - npm ci
+  script:
+    - npm run build
+  artifacts:
+    name: "pymacs-web-dist-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - dist/
+    expire_in: 30 days
+
+# 3. Compile arXiv Preprint Paper to PDF
+compile_paper:
+  stage: paper
+  image: texlive/texlive:latest
+  script:
+    - cd paper
+    - pdflatex -interaction=nonstopmode pymacs_paper.tex
+    - bibtex pymacs_paper || true
+    - pdflatex -interaction=nonstopmode pymacs_paper.tex
+    - pdflatex -interaction=nonstopmode pymacs_paper.tex
+  artifacts:
+    name: "pymacs-arxiv-preprint-pdf"
+    paths:
+      - paper/pymacs_paper.pdf
+    expire_in: 90 days
+  rules:
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"'
+
+# 4. Docker Container Build to GitLab Container Registry
+build_docker:
+  stage: package
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  rules:
+    - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "main"'
+
+# 5. Automated GitLab Release
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    - echo "Publishing PyMacs release $CI_COMMIT_TAG to GitLab Releases"
+  release:
+    name: 'PyMacs Release $CI_COMMIT_TAG'
+    description: 'RELEASE_NOTES_v4.2.0.md'
+    tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: 'Windows Setup EXE (Win 8/10/11)'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/public/downloads/pymacs-v4.2.0-win8-win10-win11-setup.exe?job=build_app'
+        - name: 'Android Standalone APK'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/public/downloads/pymacs-v4.2.0-android.apk?job=build_app'
+        - name: 'arXiv Preprint LaTeX Manuscript'
+          url: '${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/raw/paper/pymacs_paper.pdf?job=compile_paper'

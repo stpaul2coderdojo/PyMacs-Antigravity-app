@@ -25,11 +25,15 @@ import {
   Maximize2,
   Sliders,
   Eye,
+  Copy,
+  Terminal,
+  Cpu,
 } from 'lucide-react';
 import { VirtualDOMNode, XMLFilterDef } from '../types/dom';
 import { transpileJSONToXML, transpileXMLToDOM } from '../engine/jsonTranspiler';
 import { domToJSON, domToXML, flattenDOMTree } from '../engine/w3parser';
 import { JsonDatabase, JsonDbRecord, DEFAULT_DATABASE_RECORDS } from '../engine/jsonDatabase';
+import { domToReactiveTypeScript, domToReactiveKotlin, domToReactivePython, ReactiveTargetLanguage } from '../engine/domReactiveTranspiler';
 
 interface TranspilerPlaygroundViewProps {
   currentRootNode: VirtualDOMNode;
@@ -73,8 +77,65 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
   const [docTags, setDocTags] = useState('PML, Transpiled, JSON-DB');
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // View Layout Modes
-  const [activeStepTab, setActiveStepTab] = useState<'pipeline' | 'json' | 'xml' | 'dom' | 'database'>('pipeline');
+  // View Layout Modes: JSON -> XML -> DOM -> Reactive Targets (TS/Kotlin/Python) -> Database
+  const [activeStepTab, setActiveStepTab] = useState<'pipeline' | 'json' | 'xml' | 'dom' | 'reactive' | 'database'>('pipeline');
+  const [selectedReactiveTarget, setSelectedReactiveTarget] = useState<ReactiveTargetLanguage>('typescript');
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [mutationTestLogs, setMutationTestLogs] = useState<string[]>([
+    '[INIT] Reactive Document Object Model observers active.',
+    '[SYSTEM] DOM is Document Object Model (W3C standard) — not physics.',
+    '[BINDING] Reactive signals synchronized for TypeScript, Kotlin StateFlow, and Python AsyncIO.',
+  ]);
+
+  // Derived Reactive Code based on current rendered DOM
+  const reactiveCode = useMemo(() => {
+    try {
+      if (selectedReactiveTarget === 'typescript') {
+        return domToReactiveTypeScript(renderedDOM);
+      } else if (selectedReactiveTarget === 'kotlin') {
+        return domToReactiveKotlin(renderedDOM);
+      } else {
+        return domToReactivePython(renderedDOM);
+      }
+    } catch (err: any) {
+      return `// Error generating ${selectedReactiveTarget} code: ${err.message}`;
+    }
+  }, [renderedDOM, selectedReactiveTarget]);
+
+  const handleCopyReactiveCode = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(reactiveCode);
+    }
+    setCopiedCode(true);
+    showNotification(`Copied reactive ${selectedReactiveTarget.toUpperCase()} code to clipboard!`, 'success');
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleDownloadReactiveCode = () => {
+    const ext = selectedReactiveTarget === 'typescript' ? 'ts' : selectedReactiveTarget === 'kotlin' ? 'kt' : 'py';
+    const filename = `reactive_dom_${Date.now()}.${ext}`;
+    const blob = new Blob([reactiveCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification(`Downloaded ${filename}`, 'success');
+  };
+
+  const handleSimulateReactiveMutation = () => {
+    const timestamp = new Date().toLocaleTimeString();
+    const sampleValue = `State_${Math.floor(Math.random() * 900 + 100)}`;
+    const newLogs = [
+      `[${timestamp}] Reactive Signal emitted: state.textContent <- "${sampleValue}"`,
+      `[${timestamp}] TS (Signals): Signal.notifySubscribers() triggered effect -> DOM element #${renderedDOM.id} textContent updated`,
+      `[${timestamp}] Kotlin (StateFlow): StateFlow<String> emitted to CoroutineScope -> element("${renderedDOM.tagName.toLowerCase()}") re-evaluated`,
+      `[${timestamp}] Python (AsyncIO): ReactiveSignal._notify() queued -> watched by asyncio EventLoop`,
+    ];
+    setMutationTestLogs((prev) => [...newLogs, ...prev].slice(0, 25));
+    showNotification('Simulated reactive mutation across TypeScript, Kotlin, and Python streams', 'info');
+  };
 
   // Load database records on mount
   useEffect(() => {
@@ -356,7 +417,7 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
 
           <ArrowRight className="w-3 h-3 text-[#4ADE80]/60 hidden sm:block flex-shrink-0" />
 
-          {/* Step 4 */}
+          {/* Step 3 */}
           <button
             onClick={() => setActiveStepTab('dom')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors cursor-pointer ${
@@ -364,13 +425,34 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
                 ? 'bg-[#1C1C20] text-white border border-[#2F2F35]'
                 : 'text-[#71717A] hover:text-[#D1D1D1]'
             }`}
-            title="Step 4: Live Rendered DOM"
+            title="Step 3: Live Rendered W3C Document Object Model"
           >
             <span className="w-4 h-4 rounded-full bg-[#2A2A30] text-[10px] flex items-center justify-center font-bold text-[#4ADE80]">
               3
             </span>
             <span>Render DOM</span>
             <span className="text-[10px] text-[#A1A1AA]">({allRenderedNodes.length})</span>
+          </button>
+
+          <ArrowRight className="w-3 h-3 text-[#4ADE80]/60 hidden sm:block flex-shrink-0" />
+
+          {/* Step 4: Reactive Targets (TS, Kotlin, Python) */}
+          <button
+            onClick={() => setActiveStepTab('reactive')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+              activeStepTab === 'reactive'
+                ? 'bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/40 font-medium'
+                : 'text-[#71717A] hover:text-[#D1D1D1]'
+            }`}
+            title="Step 4: Transpile DOM to Reactive TypeScript, Kotlin, and Python"
+          >
+            <span className="w-4 h-4 rounded-full bg-[#2A2A30] text-[10px] flex items-center justify-center font-bold text-[#38BDF8]">
+              4
+            </span>
+            <span>Reactive DOM (TS/Kotlin/Python)</span>
+            <span className="px-1 py-0.2 bg-[#38BDF8]/15 rounded text-[9px] text-[#38BDF8]">
+              Reactive
+            </span>
           </button>
 
           <ArrowRight className="w-3 h-3 text-[#4ADE80]/60 hidden sm:block flex-shrink-0" />
@@ -386,7 +468,7 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
             title="Step 5: Persist to JSON Database"
           >
             <span className="w-4 h-4 rounded-full bg-[#2A2A30] text-[10px] flex items-center justify-center font-bold text-[#4ADE80]">
-              4
+              5
             </span>
             <span>JSON Database</span>
             <span className="px-1.5 py-0.2 bg-[#202025] rounded text-[9px] text-[#A1A1AA]">
@@ -406,6 +488,15 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
               }`}
             >
               Split View
+            </button>
+            <button
+              onClick={() => setActiveStepTab('reactive')}
+              className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 ${
+                activeStepTab === 'reactive' ? 'bg-[#2D2D35] text-[#38BDF8]' : 'text-[#71717A] hover:text-[#D1D1D1]'
+              }`}
+            >
+              <Code2 className="w-3 h-3" />
+              <span>Reactive DOM</span>
             </button>
             <button
               onClick={() => setActiveStepTab('database')}
@@ -688,17 +779,21 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
                           </div>
                         )}
 
-                        {/* Physics Specs */}
-                        <div className="pt-2 border-t border-[#1F1F24] flex items-center justify-between text-[10px] font-mono text-[#71717A]">
-                          <span>
-                            Mass: <span className="text-white">{renderedDOM.physics.mass}kg</span>
-                          </span>
-                          <span>
-                            Charge: <span className="text-white">{renderedDOM.physics.charge}C</span>
-                          </span>
-                          <span>
-                            Pos: ({Math.round(renderedDOM.physics.x)}, {Math.round(renderedDOM.physics.y)})
-                          </span>
+                        {/* W3C Document Object Model (DOM) Metadata */}
+                        <div className="pt-2 border-t border-[#1F1F24] flex flex-col sm:flex-row sm:items-center justify-between text-[10px] font-mono text-[#71717A] gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#38BDF8] font-medium">Document Object Model</span>
+                            <span>•</span>
+                            <span>Tag: <strong className="text-white">&lt;{renderedDOM.tagName}&gt;</strong></span>
+                            <span>•</span>
+                            <span>ID: <strong className="text-white">#{renderedDOM.id}</strong></span>
+                          </div>
+                          <button
+                            onClick={() => setActiveStepTab('reactive')}
+                            className="text-[#38BDF8] hover:underline flex items-center gap-1 cursor-pointer text-[10px]"
+                          >
+                            <span>Generate Reactive Code (TS / Kotlin / Python) →</span>
+                          </button>
                         </div>
                       </div>
 
@@ -756,11 +851,15 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
                   )}
                 </div>
 
-                {/* Bottom Action: Persist Button */}
+                {/* Bottom Action: Reactive Code & Persist Button */}
                 <div className="p-3 bg-[#121216] border-t border-[#222226] flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-[#71717A]">
-                    Step 4: Persist as JSON
-                  </span>
+                  <button
+                    onClick={() => setActiveStepTab('reactive')}
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-[#38BDF8]/15 hover:bg-[#38BDF8]/25 text-[#38BDF8] border border-[#38BDF8]/30 rounded text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    <Code2 className="w-3.5 h-3.5" />
+                    <span>Reactive Code (TS/Kotlin/Python)</span>
+                  </button>
                   <button
                     onClick={() => setShowSaveModal(true)}
                     className="flex items-center gap-1.5 px-3 py-1 bg-[#4ADE80]/20 hover:bg-[#4ADE80]/30 text-[#4ADE80] border border-[#4ADE80]/40 rounded text-xs font-semibold transition-all cursor-pointer"
@@ -771,6 +870,207 @@ export const TranspilerPlaygroundView: React.FC<TranspilerPlaygroundViewProps> =
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ======================= REACTIVE DOM TARGETS VIEW ======================= */}
+        {activeStepTab === 'reactive' && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0A0A0B]">
+            {/* Top Info Banner */}
+            <div className="px-4 py-2.5 bg-[#0E1015] border-b border-[#1E2230] flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-[#38BDF8]/20 border border-[#38BDF8]/40 text-[#38BDF8] font-mono font-semibold text-[11px] flex items-center gap-1">
+                  <Terminal className="w-3 h-3" />
+                  <span>DOM is Document Object Model</span>
+                </span>
+                <span className="text-[#A1A1AA] text-[11px] hidden md:inline">
+                  W3C hierarchical tree representing elements, attributes, and text nodes (not physics). Transpiles to reactive TypeScript (Signals), Kotlin (StateFlow), and Python (AsyncIO).
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveStepTab('pipeline')}
+                  className="px-2.5 py-1 rounded bg-[#18181F] hover:bg-[#252530] text-[#D1D1D1] text-[11px] font-mono transition-colors cursor-pointer"
+                >
+                  ← Back to Pipeline
+                </button>
+              </div>
+            </div>
+
+            {/* Main Content: Split Code Pane & Reactive Simulator */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#1E2230] overflow-hidden">
+              {/* Left Column: Code Target Selector & Editor (8 cols) */}
+              <div className="lg:col-span-8 flex flex-col h-full bg-[#0B0C10] overflow-hidden">
+                {/* Language Switcher Bar */}
+                <div className="px-4 py-2 bg-[#12131A] border-b border-[#1E2230] flex flex-wrap items-center justify-between gap-2">
+                  {/* Language Tabs */}
+                  <div className="flex items-center gap-1.5 bg-[#171822] p-0.5 rounded border border-[#262838]">
+                    <button
+                      onClick={() => setSelectedReactiveTarget('typescript')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                        selectedReactiveTarget === 'typescript'
+                          ? 'bg-[#3178C6] text-white font-semibold shadow-sm'
+                          : 'text-[#A1A1AA] hover:text-white'
+                      }`}
+                    >
+                      <span>⚡ TypeScript</span>
+                      <span className="text-[10px] opacity-80">(Reactive Signals)</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedReactiveTarget('kotlin')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                        selectedReactiveTarget === 'kotlin'
+                          ? 'bg-[#7F52FF] text-white font-semibold shadow-sm'
+                          : 'text-[#A1A1AA] hover:text-white'
+                      }`}
+                    >
+                      <span>🔮 Kotlin</span>
+                      <span className="text-[10px] opacity-80">(Multiplatform / StateFlow)</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedReactiveTarget('python')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                        selectedReactiveTarget === 'python'
+                          ? 'bg-[#3776AB] text-white font-semibold shadow-sm'
+                          : 'text-[#A1A1AA] hover:text-white'
+                      }`}
+                    >
+                      <span>🐍 Python</span>
+                      <span className="text-[10px] opacity-80">(AsyncIO / Reactive Tree)</span>
+                    </button>
+                  </div>
+
+                  {/* Actions: Copy & Download */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyReactiveCode}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1A1C24] hover:bg-[#252835] text-white border border-[#2E3345] rounded text-xs font-mono transition-all cursor-pointer"
+                      title="Copy code to clipboard"
+                    >
+                      {copiedCode ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-[#4ADE80]" />
+                          <span className="text-[#4ADE80]">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-[#A1A1AA]" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleDownloadReactiveCode}
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-[#38BDF8]/20 hover:bg-[#38BDF8]/30 text-[#38BDF8] border border-[#38BDF8]/40 rounded text-xs font-mono font-medium transition-all cursor-pointer"
+                      title="Download source code"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download .{selectedReactiveTarget === 'typescript' ? 'ts' : selectedReactiveTarget === 'kotlin' ? 'kt' : 'py'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Code Body Area */}
+                <div className="flex-1 relative overflow-auto bg-[#090A0E] p-4 font-mono text-xs leading-relaxed text-[#E2E8F0]">
+                  <pre className="whitespace-pre font-mono selection:bg-[#38BDF8]/30 selection:text-white">
+                    {reactiveCode}
+                  </pre>
+                </div>
+
+                {/* Status Footer */}
+                <div className="px-4 py-1.5 bg-[#0E1015] border-t border-[#1E2230] flex items-center justify-between text-[11px] font-mono text-[#71717A]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#4ADE80]" />
+                    <span>Target: {selectedReactiveTarget.toUpperCase()} Reactive Engine</span>
+                  </div>
+                  <span>Transpiled from W3C DOM Tree ({renderedDOM.tagName} #{renderedDOM.id})</span>
+                </div>
+              </div>
+
+              {/* Right Column: Reactive Simulator & Architecture Spec (4 cols) */}
+              <div className="lg:col-span-4 flex flex-col h-full bg-[#0D0E13] overflow-y-auto p-4 space-y-4">
+                {/* Simulator Card */}
+                <div className="p-4 rounded-xl bg-[#12141C] border border-[#222638] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-semibold text-white flex items-center gap-1.5">
+                      <Cpu className="w-4 h-4 text-[#38BDF8]" />
+                      <span>Reactive Signal Simulator</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-[#4ADE80]">Active</span>
+                  </div>
+                  <p className="text-[11px] text-[#A1A1AA] leading-normal">
+                    Trigger a simulated reactive DOM mutation to observe synchronized event emissions across TypeScript, Kotlin, and Python pipelines:
+                  </p>
+                  <button
+                    onClick={handleSimulateReactiveMutation}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-[#38BDF8] hover:bg-[#0284c7] text-black font-semibold rounded-lg text-xs font-mono transition-all shadow-[0_0_12px_rgba(56,189,248,0.25)] cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Emit Reactive Mutation Event</span>
+                  </button>
+                </div>
+
+                {/* Event Log Output */}
+                <div className="p-3.5 rounded-xl bg-[#090A0D] border border-[#1C2030] flex flex-col flex-1 min-h-[220px]">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1A1D2A] text-[11px] font-mono">
+                    <span className="text-[#A1A1AA] flex items-center gap-1.5">
+                      <Terminal className="w-3 h-3 text-[#38BDF8]" />
+                      <span>Signal Stream Telemetry</span>
+                    </span>
+                    <button
+                      onClick={() => setMutationTestLogs([])}
+                      className="text-[10px] text-[#71717A] hover:text-white cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-1.5 font-mono text-[10px] text-[#CBD5E1]">
+                    {mutationTestLogs.length === 0 ? (
+                      <div className="text-[#555] italic py-6 text-center">
+                        No events logged. Click "Emit Reactive Mutation Event" to test.
+                      </div>
+                    ) : (
+                      mutationTestLogs.map((log, i) => (
+                        <div
+                          key={i}
+                          className={`p-1.5 rounded ${
+                            log.includes('TS')
+                              ? 'bg-[#3178C6]/10 text-[#93C5FD] border-l-2 border-[#3178C6]'
+                              : log.includes('Kotlin')
+                              ? 'bg-[#7F52FF]/10 text-[#C4B5FD] border-l-2 border-[#7F52FF]'
+                              : log.includes('Python')
+                              ? 'bg-[#3776AB]/10 text-[#93C5FD] border-l-2 border-[#38BDF8]'
+                              : 'bg-[#151620] text-[#94A3B8]'
+                          }`}
+                        >
+                          {log}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Architectural Clarification Card */}
+                <div className="p-4 rounded-xl bg-[#11131A] border border-[#202434] space-y-2 text-xs">
+                  <h4 className="font-semibold text-white flex items-center gap-1.5 text-xs font-mono">
+                    <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                    <span>PyMacs Architectural Principles</span>
+                  </h4>
+                  <ul className="space-y-1.5 text-[11px] text-[#A1A1AA] list-disc list-inside leading-relaxed">
+                    <li>
+                      <strong className="text-white">DOM:</strong> Document Object Model representing hierarchical nodes (tag, id, class, children, attributes, and text nodes).
+                    </li>
+                    <li>
+                      <strong className="text-white">Separation:</strong> Physics simulation (gravity, mass, velocities) is an optional viewport bridge, completely decoupled from the W3C DOM.
+                    </li>
+                    <li>
+                      <strong className="text-white">Reactive Equivalence:</strong> The DOM tree maps to fine-grained reactive signals in TypeScript, Kotlin Coroutines StateFlow, and Python AsyncIO queues.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

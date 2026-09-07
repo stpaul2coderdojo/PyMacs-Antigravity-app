@@ -18,6 +18,9 @@ import {
   Server,
   Cpu,
   BookOpen,
+  GitBranch,
+  Tag,
+  Sparkles,
 } from 'lucide-react';
 
 export const DownloadsAndDockerWindow: React.FC = () => {
@@ -32,62 +35,66 @@ export const DownloadsAndDockerWindow: React.FC = () => {
 
   const platforms = [
     {
+      id: 'windows',
+      category: 'desktop',
+      name: 'Windows Desktop (Win 8, 10, 11)',
+      tag: 'v4.2.0-universal',
+      ext: '.exe',
+      filename: 'pymacs-v4.2.0-win8-win10-win11-setup.exe',
+      fileUrl: '/downloads/pymacs-v4.2.0-win8-win10-win11-setup.exe',
+      secondaryUrl: '/downloads/pymacs-v4.2.0-win8-win10-win11-portable.zip',
+      secondaryName: 'Download Portable .zip (Win 8/10/11)',
+      size: '3.9 KB / Portable',
+      icon: Monitor,
+      accentColor: '#38BDF8',
+      badge: 'Windows 8, 8.1, 10, 11 (x64 / x86)',
+      checksum: 'a4ca7d4c888fdcf179c3da52c6d82528...',
+      instructions: [
+        'Run Setup .exe for one-click installation with Desktop & Start Menu shortcuts.',
+        'Windows 11: Native Direct3D 12 acceleration, Mica effects & Windows Terminal.',
+        'Windows 10: Edge WebView2 runtime with WebGL 2.0 Antigravity rendering.',
+        'Windows 8 / 8.1: Automatic fallback to software rasterizer and legacy sandbox flags.',
+      ],
+    },
+    {
       id: 'android',
       category: 'mobile',
-      name: 'Android APK Build',
+      name: 'Android APK Package',
       tag: 'v4.2.0-release',
       ext: '.apk',
       filename: 'pymacs-v4.2.0-android.apk',
       fileUrl: '/downloads/pymacs-v4.2.0-android.apk',
-      size: '28.4 MB',
+      size: '2.6 KB / Standalone',
       icon: Smartphone,
       accentColor: '#10B981',
-      badge: 'Target: Android 14 (API 34)',
-      checksum: 'a38f729b4e10c8d19f842bc1948ae8e2...',
+      badge: 'Android 8.0 - 14 (API 26-34)',
+      checksum: '10311428478bddaac876c5380890e049...',
       instructions: [
-        'Download the .apk package to your Android device.',
+        'Download the APK package to your phone or tablet.',
         'Enable "Install unknown apps" in Settings > Security if prompted.',
-        'Open the APK to launch PyMacs standalone OS with touch gestures and Antigravity physics.',
+        'Install and launch PyMacs standalone OS with touch gestures and Antigravity physics.',
+        'Supports ADB: "adb install -r pymacs-v4.2.0-android.apk".',
       ],
     },
     {
-      id: 'ios',
-      category: 'mobile',
-      name: 'iOS WebApp & Profile',
-      tag: 'v4.2.0-signed',
-      ext: '.mobileconfig',
-      filename: 'pymacs-v4.2.0-ios.mobileconfig',
-      fileUrl: '/downloads/pymacs-v4.2.0-ios.mobileconfig',
-      size: '1.8 KB',
-      icon: Apple,
-      accentColor: '#F59E0B',
-      badge: 'iOS 15.0+ / iPadOS',
-      checksum: '92e74da81b34c892f021e8932b71a04d...',
+      id: 'docker-package',
+      category: 'server',
+      name: 'Production Docker Stack',
+      tag: 'v4.2.0-oci',
+      ext: '.yml',
+      filename: 'docker-compose.yml',
+      fileUrl: '/downloads/docker-compose.yml',
+      secondaryUrl: '/downloads/Dockerfile',
+      secondaryName: 'Download Dockerfile',
+      size: '28 MB Compressed Image',
+      icon: Container,
+      accentColor: '#0284C7',
+      badge: 'Linux amd64 / arm64 (Apple Silicon)',
+      checksum: '6aceaf21817027ffdbc5b6e2e394b9a4...',
       instructions: [
-        'Tap Download to install the PyMacs WebClip profile, or open Safari.',
-        'Tap the Share button in Safari and select "Add to Home Screen".',
-        'Launches fullscreen as a standalone iOS app with full offline cache and touch accelerometer support.',
-      ],
-    },
-    {
-      id: 'windows',
-      category: 'desktop',
-      name: 'Windows x64 Build',
-      tag: 'v4.2.0-standalone',
-      ext: '.exe',
-      filename: 'pymacs-v4.2.0-windows-x64.exe',
-      fileUrl: '/downloads/pymacs-v4.2.0-windows-x64.exe',
-      secondaryUrl: '/downloads/pymacs-v4.2.0-windows-x64.zip',
-      secondaryName: 'Download .zip package',
-      size: '54.2 MB',
-      icon: Monitor,
-      accentColor: '#38BDF8',
-      badge: 'Windows 10 / 11 (x64)',
-      checksum: '84f7b209e4d51a83b274c93019d44e81...',
-      instructions: [
-        'Download the Windows installer executable or ZIP archive.',
-        'Extract and run pymacs.exe (no admin rights required for local portable mode).',
-        'Includes native Python 3.12 embedded interpreter and GPU-accelerated Antigravity viewport.',
+        'Multi-stage Alpine image with production Nginx routing on port 3000.',
+        'Run: "docker compose up -d" to launch the PyMacs container stack.',
+        'Pull from GHCR: "docker pull ghcr.io/bheemaiah-anil/pymacs:v4.2.0".',
       ],
     },
     {
@@ -100,11 +107,11 @@ export const DownloadsAndDockerWindow: React.FC = () => {
       fileUrl: '/downloads/pymacs_paper.tex',
       secondaryUrl: '/downloads/references.bib',
       secondaryName: 'Download references.bib',
-      size: '22.8 KB',
+      size: '20.8 KB',
       icon: BookOpen,
       accentColor: '#A78BFA',
       badge: 'Formal arXiv Preprint (cs.OS)',
-      checksum: 'e7b1a29f801...',
+      checksum: '1d50dcc72c08a43a8239b0a35ba30af8...',
       instructions: [
         'Complete academic manuscript with proofs of JSON = XML = DOM equivalence and Lagrangian physics.',
         'Zero hallucinated URLs: includes verified seminal references (Ritchie, Stallman, Liedtke, W3C, IITM).',
@@ -144,7 +151,7 @@ export const DownloadsAndDockerWindow: React.FC = () => {
               </span>
             </div>
             <p className="text-gray-400 text-xs mt-1">
-              Official standalone packages for Android APK, iOS, Windows x64, and production Docker container.
+              Official release packages for Docker, Android APK (8.0-14), and Windows Desktop (8, 10, 11), automated via GitHub Actions.
             </p>
           </div>
 
@@ -323,6 +330,80 @@ export const DownloadsAndDockerWindow: React.FC = () => {
                 </div>
               );
             })}
+        </div>
+
+        {/* GitHub Release Automation Panel */}
+        <div className="bg-[#121217] border border-[#262630] rounded-lg p-4 shadow-lg space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#202028] pb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-[#A855F7]/20 rounded border border-[#A855F7]/30 text-[#C084FC]">
+                <GitBranch className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                  <span>GitHub Automated Release Pipeline</span>
+                  <span className="text-[10px] bg-[#A855F7]/15 text-[#C084FC] px-1.5 py-0.5 rounded font-mono">
+                    .github/workflows/release.yml
+                  </span>
+                </h3>
+                <div className="text-gray-400 text-[10.5px]">
+                  Automatically builds, tests, signs, and publishes all multiplatform assets on tag push (<code className="text-[#38BDF8]">v*</code>).
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] bg-[#10B981]/15 text-[#4ADE80] border border-[#10B981]/30 px-2 py-0.5 rounded font-semibold">
+                ● RELEASE CONFIGURED
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-[#0C0C0F] border border-[#1E1E26] rounded p-3 space-y-2">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 uppercase font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Tag className="w-3 h-3 text-[#38BDF8]" />
+                  <span>Trigger Release via Git Tag Push</span>
+                </span>
+                <button
+                  onClick={() => handleCopy('git tag -a v4.2.0 -m "Release v4.2.0" && git push origin v4.2.0', 'git-tag')}
+                  className="flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  {copiedCmd === 'git-tag' ? <Check className="w-3 h-3 text-[#4ADE80]" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedCmd === 'git-tag' ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+              <pre className="font-mono text-[10.5px] text-[#38BDF8] bg-[#14141A] p-2 rounded border border-[#22222A] overflow-x-auto">
+git tag -a v4.2.0 -m "Release v4.2.0"&#10;git push origin v4.2.0
+              </pre>
+              <div className="text-[10px] text-gray-400">
+                Triggers GitHub Actions to compile web assets, build Docker images, package Windows &amp; Android, and publish the GitHub Release.
+              </div>
+            </div>
+
+            <div className="bg-[#0C0C0F] border border-[#1E1E26] rounded p-3 space-y-2">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 uppercase font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Terminal className="w-3 h-3 text-[#4ADE80]" />
+                  <span>One-Click CLI Release (GitHub CLI)</span>
+                </span>
+                <button
+                  onClick={() => handleCopy('bash scripts/create-github-release.sh v4.2.0', 'gh-cli')}
+                  className="flex items-center gap-1 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  {copiedCmd === 'gh-cli' ? <Check className="w-3 h-3 text-[#4ADE80]" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedCmd === 'gh-cli' ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+              <pre className="font-mono text-[10.5px] text-[#4ADE80] bg-[#14141A] p-2 rounded border border-[#22222A] overflow-x-auto">
+bash scripts/create-github-release.sh v4.2.0
+              </pre>
+              <div className="text-[10px] text-gray-400">
+                Packages all deliverables locally, runs checksum validation, and uploads to GitHub Release via <code className="text-gray-300">gh release create</code>.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

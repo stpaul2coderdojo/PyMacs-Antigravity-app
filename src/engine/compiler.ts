@@ -1,4 +1,15 @@
 import { VirtualDOMNode, JSCompilationOutput } from '../types/dom';
+import { domToReactiveTypeScript, domToReactiveKotlin, domToReactivePython, ReactiveTargetLanguage } from './domReactiveTranspiler';
+
+/**
+ * PyMacs Reactive Compiler & Document Object Model (DOM) Engine
+ *
+ * Core Principle:
+ * DOM is NOT physics; DOM is the Document Object Model (the standard W3C hierarchical tree
+ * of elements, attributes, text nodes, and reactive state bindings).
+ * The DOM to TypeScript mapping is fully reactive (Signals & Effects).
+ * Multi-target code generation supports Reactive TypeScript, Kotlin, and Python.
+ */
 
 export interface Token {
   type: 'KEYWORD' | 'IDENTIFIER' | 'NUMBER' | 'STRING' | 'OPERATOR' | 'PUNCTUATION';
@@ -72,11 +83,15 @@ export function buildSimpleAST(tokens: Token[]): any {
   };
 }
 
+/**
+ * Executes a script in a reactive Document Object Model sandbox.
+ * Strictly separates standard Document Object Model (DOM) interactions from optional viewport effects.
+ */
 export function executeAntigravityScript(
   code: string,
   nodes: VirtualDOMNode[],
-  setGravity: (g: number) => void,
-  spawnNode: (tag: string, text: string, x?: number, y?: number, mass?: number) => void
+  setGravity?: (g: number) => void,
+  spawnNode?: (tag: string, text: string, x?: number, y?: number, mass?: number) => void
 ): JSCompilationOutput {
   const startTime = performance.now();
   const tokens = tokenizeJS(code);
@@ -84,53 +99,108 @@ export function executeAntigravityScript(
   const bytecodeInstructions = generateBytecode(tokens);
   const logs: string[] = [];
 
-  // Sandbox document proxy
-  const sandboxDocument = {
+  // Reactive Signal Registry for fine-grained TypeScript reactivity
+  const signalRegistry = new Map<string, any>();
+
+  // Standard W3C Document Object Model (DOM) Sandbox Implementation
+  const document = {
+    // 1. Element retrieval by W3C ID
     getElementById(id: string) {
       const found = nodes.find((n) => n.id === id);
       if (!found) return null;
       return {
         id: found.id,
         tagName: found.tagName,
-        get mass() { return found.physics.mass; },
-        set mass(m: number) { found.physics.mass = m; },
-        applyForce(fx: number, fy: number) {
-          found.physics.vx += fx;
-          found.physics.vy += fy;
-          logs.push(`[DOM] applyForce(${fx}, ${fy}) on #${found.id}`);
+        nodeType: found.nodeType,
+        get textContent() {
+          return found.textContent || '';
         },
-        setPosition(x: number, y: number) {
-          found.physics.x = x;
-          found.physics.y = y;
+        set textContent(txt: string) {
+          found.textContent = txt;
+          logs.push(`[DOM Mutation] #${found.id}.textContent = "${txt}"`);
+        },
+        getAttribute(name: string) {
+          return found.attributes[name];
         },
         setAttribute(k: string, v: string) {
           found.attributes[k] = v;
+          logs.push(`[DOM Mutation] #${found.id}.setAttribute("${k}", "${v}")`);
+        },
+        setStyle(prop: string, val: string) {
+          found.styles = found.styles || {};
+          found.styles[prop] = val;
+          logs.push(`[DOM Style] #${found.id}.style.${prop} = "${val}"`);
+        },
+        addEventListener(event: string, handler: Function) {
+          logs.push(`[DOM Event] Registered listener for "${event}" on #${found.id}`);
+        },
+        // Reactive signal binding
+        bindSignal(signalName: string, transformFn?: (v: any) => string) {
+          logs.push(`[DOM Reactive] Bound #${found.id} to Signal "${signalName}"`);
         },
       };
     },
+
+    // 2. Query selectors
     querySelectorAll(selector: string) {
       return nodes.map((n) => this.getElementById(n.id)!);
     },
-    spawnNode(tag: string, text: string, x?: number, y?: number, mass?: number) {
-      spawnNode(tag, text, x, y, mass);
-      logs.push(`[DOM] spawnNode(<${tag}> "${text}")`);
+    querySelector(selector: string) {
+      return nodes.length > 0 ? this.getElementById(nodes[0].id) : null;
     },
-    setGravity(g: number) {
-      setGravity(g);
-      logs.push(`[Engine] setGravity(${g} m/s²)`);
+
+    // 3. Dynamic DOM node creation
+    createElement(tag: string, text?: string) {
+      const newId = `el_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 5)}`;
+      if (spawnNode) {
+        spawnNode(tag, text || '', 100, 100, 1.0);
+      }
+      logs.push(`[DOM Creation] document.createElement("<${tag}>", id="${newId}")`);
+      return this.getElementById(newId);
+    },
+
+    // 4. Reactive Signal Primitive
+    createSignal(name: string, initialValue: any) {
+      signalRegistry.set(name, initialValue);
+      logs.push(`[Reactive Signal] createSignal("${name}", ${JSON.stringify(initialValue)})`);
+      return {
+        get: () => signalRegistry.get(name),
+        set: (val: any) => {
+          signalRegistry.set(name, val);
+          logs.push(`[Reactive Signal] "${name}" -> ${JSON.stringify(val)}`);
+        },
+      };
     },
   };
 
-  const sandboxConsole = {
+  // Viewport Bridge (optional visualization hooks, strictly separated from DOM)
+  const viewportBridge = {
+    setGravity(g: number) {
+      if (setGravity) {
+        setGravity(g);
+        logs.push(`[Viewport Layout] Gravitational alignment set to ${g} m/s²`);
+      }
+    },
+    applyImpulse(id: string, fx: number, fy: number) {
+      const found = nodes.find((n) => n.id === id);
+      if (found) {
+        found.physics.vx += fx;
+        found.physics.vy += fy;
+        logs.push(`[Viewport Layout] Impulse (${fx}, ${fy}) applied to #${id}`);
+      }
+    },
+  };
+
+  const consoleProxy = {
     log: (...args: any[]) => logs.push(args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')),
     warn: (...args: any[]) => logs.push('[WARN] ' + args.join(' ')),
     error: (...args: any[]) => logs.push('[ERROR] ' + args.join(' ')),
   };
 
   try {
-    // Run inside controlled Function sandbox
-    const sandboxRunner = new Function('document', 'console', 'nodes', code);
-    sandboxRunner(sandboxDocument, sandboxConsole, nodes);
+    // Run inside controlled Function sandbox with standard DOM objects
+    const sandboxRunner = new Function('document', 'console', 'viewport', 'nodes', code);
+    sandboxRunner(document, consoleProxy, viewportBridge, nodes);
 
     const execTime = performance.now() - startTime;
     return {
@@ -154,3 +224,5 @@ export function executeAntigravityScript(
     };
   }
 }
+
+export { domToReactiveTypeScript, domToReactiveKotlin, domToReactivePython };

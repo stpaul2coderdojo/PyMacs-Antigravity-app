@@ -33,6 +33,7 @@ import { PaperViewerWindow } from './components/os/PaperViewerWindow';
 import { Window, WindowState } from './components/os/WindowManager';
 
 // Core Engines
+import { GoogleAntigravityThreadView } from './components/os/GoogleAntigravityThreadView';
 import { AntigravityCanvas } from './components/AntigravityCanvas';
 import { TranspilerPlaygroundView } from './components/TranspilerPlaygroundView';
 import { XMLW3ParserView } from './components/XMLW3ParserView';
@@ -472,16 +473,7 @@ export default function App() {
           )}
 
           {activeTab === 'physics' && (
-            <AntigravityCanvas
-              nodes={nodes}
-              filters={filters}
-              gravityY={gravityY}
-              setGravityY={setGravityY}
-              selectedNodeId={selectedNodeId}
-              onSelectNode={setSelectedNodeId}
-              onSpawnNode={handleSpawnNode}
-              pointerRef={pointerRef}
-            />
+            <GoogleAntigravityThreadView onUpdateRootDOM={handleMountDOMTree} />
           )}
 
           {activeTab === 'apps' && (

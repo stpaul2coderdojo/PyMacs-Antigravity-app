@@ -1,6 +1,6 @@
 {
   "name": "PyMacs",
-  "description": "PyMacs: An Operating System in Python. A minimalist, academic, Emacs-inspired browser OS with reactive Antigravity DOM, JSON=XML=DOM pipeline, thread-based filesystem, asyncio tasks, Cloud, On-Chain proofs, and Docker / multiplatform APK, iOS, and Windows builds.",
+  "description": "PyMacs: An Operating System in Python featuring Google Antigravity Agentic App Building, Cooperative Thread Architecture, Microkernel Thread Dump, Memory Usage Dump with Generational GC, and Single Screen Round-Robin DOM Rendering.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

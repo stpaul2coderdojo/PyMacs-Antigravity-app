@@ -99,20 +99,20 @@ export const DescribePyMacsView: React.FC<DescribePyMacsViewProps> = ({
             </p>
           </div>
 
-          {/* Pillar 2: Antigravity Physics Engine */}
+          {/* Pillar 2: Google Antigravity Agentic App Building & Thread Kernel */}
           <div className="bg-[#121217] border border-[#24242C] p-4 rounded-lg space-y-2">
-            <div className="flex items-center gap-2 text-[#4ADE80] text-xs font-bold uppercase">
-              <Atom className="w-4 h-4" />
-              <span>2. Antigravity Physics Engine</span>
+            <div className="flex items-center gap-2 text-[#38BDF8] text-xs font-bold uppercase">
+              <Sparkles className="w-4 h-4" />
+              <span>2. Google Antigravity Agentic App Building &amp; Thread Kernel</span>
             </div>
             <p className="text-xs text-gray-300 leading-relaxed">
-              PyMacs renders DOM elements as dynamic physical entities subjected to gravitational vectors (<code className="text-[#38BDF8]">-9.81 m/s²</code>), electrostatic Coulomb repulsion, spring tethering, and inertial momentum at 60 FPS.
+              PyMacs operates on a cooperative thread architecture where autonomous Google Antigravity agents execute parallel thought-action-observation loops. The kernel features comprehensive thread dumps, granular memory usage telemetry, and a Round-Robin DOM scheduler that multiplexes execution quanta across active threads onto a single screen.
             </p>
             <div className="bg-[#0A0A0D] p-2.5 rounded border border-[#1E1E26] text-[11px] text-yellow-300 font-mono">
-              F_total = F_gravity + F_coulomb + F_spring - μ · v
+              Thread Dump (TCB) ➔ Round-Robin Scheduler (25-40ms) ➔ Single Screen DOM Blit
             </div>
             <p className="text-[11px] text-gray-400">
-              Cursor interactions exert real-time repulsion forces, enabling tactile manipulation of interface buffers.
+              Includes full inspection of threads in memory or scope, generational GC memory sweeps, and autonomous application synthesis.
             </p>
           </div>
 

@@ -86,7 +86,7 @@ export const ProfilerWindow: React.FC = () => {
           <div className="text-[11px] font-semibold text-gray-300">Memory Allocation Breakdown</div>
           <div className="space-y-1.5 text-[11px]">
             <div className="flex items-center justify-between p-2 bg-[#1A1A22] rounded border border-[#24242C]">
-              <span className="text-gray-300">Antigravity Physics Vectors (Float64 Buffers)</span>
+              <span className="text-gray-300">Google Antigravity Agentic Thread Stacks &amp; Memory</span>
               <span className="text-white font-mono">18.4 MB</span>
             </div>
             <div className="flex items-center justify-between p-2 bg-[#1A1A22] rounded border border-[#24242C]">

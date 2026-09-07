@@ -378,10 +378,10 @@ export const DesktopHomeView: React.FC<DesktopHomeViewProps> = ({
 
           <button
             onClick={() => onOpenWindow('physics')}
-            className="p-3 bg-[#121216] hover:bg-[#191920] border border-[#22222A] hover:border-[#4ADE80]/40 rounded text-left transition-colors cursor-pointer group"
+            className="p-3 bg-[#121216] hover:bg-[#191920] border border-[#22222A] hover:border-[#38BDF8]/40 rounded text-left transition-colors cursor-pointer group"
           >
-            <div className="text-xs font-semibold text-white group-hover:text-[#4ADE80]">Antigravity Viewport</div>
-            <div className="text-[10px] text-gray-500 mt-0.5">60 FPS DOM Physics</div>
+            <div className="text-xs font-semibold text-white group-hover:text-[#38BDF8]">Google Antigravity</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">Agentic App &amp; Thread Kernel</div>
           </button>
 
           <button
